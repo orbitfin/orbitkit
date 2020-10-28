@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import util
 
-__version__ = '0.0.1'
+name = 'orbitkit'
+
+__version__ = '0.0.3'
 VERSION = __version__
 
 __all__ = [

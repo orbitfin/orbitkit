@@ -2,16 +2,17 @@ from setuptools import setup, find_packages
 
 setup(
     name='orbitkit',
-    version='0.0.1',
+    version='0.0.3',
     description=(
         'This project is only for orbit internal use.'
     ),
     long_description=open('README.rst').read(),
+    long_description_content_type="text/markdown",
     author='Lilu Cao',
     author_email='lilu.cao@qq.com',
     maintainer='Lilu Cao',
     maintainer_email='lilu.cao@qq.com',
-    license='BSD License',
+    license='MIT License',
     packages=find_packages(),
     platforms=["all"],
     url='https://github.com/clown-0726/orbitkit',
