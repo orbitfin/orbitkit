@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='orbitkit',
-    version='0.0.4',
+    version='0.0.6',
     description=(
         'This project is only for orbit internal use.'
     ),
