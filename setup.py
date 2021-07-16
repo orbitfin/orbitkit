@@ -1,10 +1,11 @@
 from setuptools import setup, find_packages
+import orbitkit
 
 setup(
     name='orbitkit',
-    version='0.0.6',
+    version=orbitkit.__version__,
     description=(
-        'This project is only for orbit internal use.'
+        'This project is only for Orbit Tech internal use.'
     ),
     long_description=open('README.rst').read(),
     long_description_content_type="text/markdown",
@@ -31,5 +32,7 @@ setup(
         'Topic :: Software Development :: Libraries'
     ],
     install_requires=[
+        "boto3 >= 1.17.0",
+        "requests >= 2.12.1",
     ]
 )
