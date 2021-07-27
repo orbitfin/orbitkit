@@ -1,4 +1,4 @@
-from file_extractor.exception import FileExtractorTimeoutException
+from orbitkit.file_extractor.exception import FileExtractorTimeoutException
 
 
 def create_uri(bucket_name, file_name):

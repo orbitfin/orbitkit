@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import util
-from file_extractor.dispatcher import FileDispatcher
+from orbitkit import util
+from orbitkit.file_extractor.dispatcher import FileDispatcher
 
 name = 'orbitkit'
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 VERSION = __version__
 
 __all__ = [

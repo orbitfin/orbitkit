@@ -1,4 +1,4 @@
-from file_extractor.extractor import FileExtractor
+from orbitkit.file_extractor.extractor import FileExtractor
 
 
 class FileExtractorTxt(FileExtractor):

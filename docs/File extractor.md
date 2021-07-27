@@ -4,9 +4,6 @@
 - boto3
 - requests
 
-#### 需要设置的环境变量
-- extract_url
-
 #### 其他需要
 - 配置好 aws-cli 及其默认参数
 

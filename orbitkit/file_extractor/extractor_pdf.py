@@ -1,6 +1,6 @@
 import json
 import requests
-from file_extractor.extractor import FileExtractor
+from orbitkit.file_extractor.extractor import FileExtractor
 
 
 class FileExtractorPdf(FileExtractor):

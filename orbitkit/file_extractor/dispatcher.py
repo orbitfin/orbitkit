@@ -1,26 +1,30 @@
 import time
 import signal
 import copy
-import os
-from file_extractor.exception import ParamsInvalidException, FileExtractorTimeoutException
-from file_extractor.extractor import FileExtractor
-from file_extractor.extractor_txt import FileExtractorTxt
-from file_extractor.extractor_pdf import FileExtractorPdf
-from file_extractor.extractor_office import FileExtractorOffice
-from file_extractor.extractor_json import FileExtractorJson
-from file_extractor.util import timeout_handler
+from orbitkit.file_extractor.exception import FileExtractorTimeoutException, ParamsInvalidException
+from orbitkit.file_extractor.extractor import FileExtractor
+from orbitkit.file_extractor.extractor_txt import FileExtractorTxt
+from orbitkit.file_extractor.extractor_pdf import FileExtractorPdf
+from orbitkit.file_extractor.extractor_office import FileExtractorOffice
+from orbitkit.file_extractor.extractor_json import FileExtractorJson
+from orbitkit.file_extractor.util import timeout_handler
 
 
 class FileDispatcher(object):
     file_extractor: FileExtractor = None
     file_obj = None
 
-    def __init__(self, file_obj):
-        self.validate_params()
+    def __init__(self, file_obj, extractor_config=None):
+        self.validate_params(
+            file_obj=file_obj,
+            extractor_config=extractor_config
+        )
 
         self.file_obj = file_obj
         self.file_type = file_obj['file_type']
 
+        # 根据类型初始化文件提取器
+        # FIXME: 也许可以用工厂进行重构
         if self.file_type in ['txt']:
             self.file_extractor = FileExtractorTxt()
         if self.file_type in ['pdf']:
@@ -29,6 +33,8 @@ class FileDispatcher(object):
             self.file_extractor = FileExtractorOffice()
         if self.file_type in ['json']:
             self.file_extractor = FileExtractorJson()
+
+        self.file_extractor.set_extract_url(extract_url=extractor_config["extract_url"])
 
     @staticmethod
     def get_params_template():
@@ -70,9 +76,6 @@ class FileDispatcher(object):
 
         return store_data_copy
 
-    def validate_params(self):
-        pass
-        # try:
-        #     os.environ['extract_url']
-        # except Exception as e:
-        #     raise ParamsInvalidException('Params invalid exception')
+    def validate_params(self, file_obj, extractor_config):
+        if extractor_config is None:
+            raise ParamsInvalidException()
