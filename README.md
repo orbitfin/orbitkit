@@ -2,7 +2,7 @@
 
 [![pypi-version]][pypi]
 
-**This project is only for Orbit Technology internal use.**
+**This project is only for Orbit Technology [https://www.orbitfin.ai/] internal use.**
 
 Full documentation for the project is available at [https://github.com/clown-0726/orbitkit/tree/main/docs][docs].
 
