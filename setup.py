@@ -7,7 +7,7 @@ setup(
     description=(
         'This project is only for Orbit Tech internal use.'
     ),
-    long_description=open('README.rst').read(),
+    long_description=open('README.md', 'r', encoding='utf-8').read(),
     long_description_content_type="text/markdown",
     author='Lilu Cao',
     author_email='lilu.cao@qq.com',
