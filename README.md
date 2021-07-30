@@ -1,4 +1,4 @@
-# [orbitkit][docs]
+# orbitkit
 
 [![pypi-version]][pypi]
 
