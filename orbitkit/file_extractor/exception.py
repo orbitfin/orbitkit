@@ -4,3 +4,8 @@ class FileExtractorTimeoutException(Exception):
 
 class ParamsInvalidException(Exception):
     pass
+
+
+class NoProperExtractorFindException(Exception):
+    def __init__(self):
+        super().__init__('NoProperExtractorFind Exception')

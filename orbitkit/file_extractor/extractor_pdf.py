@@ -7,7 +7,9 @@ class FileExtractorPdf(FileExtractor):
     def __init__(self):
         super().__init__()
 
-    def extract(self, file_obj):
+    def extract(self):
+        file_obj = self.file_obj
+
         file_type = file_obj['file_type']
         bucket_name = file_obj['bucket']
         key = file_obj['store_path']
