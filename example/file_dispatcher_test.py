@@ -8,7 +8,7 @@ if __name__ == '__main__':
         "aws_secret_access_key": ""
     })
 
-    # 设置文件信息
+    # Configure file info
     file_obj = FileDispatcher.get_params_template()
     file_obj.update({
         'bucket': 'filing-reports',
@@ -17,10 +17,10 @@ if __name__ == '__main__':
         'file_type': 'pdf',
     })
 
-    # 实例化文件提取器
+    # Init specific extractor
     extractor = file_dispatcher.init_extractor(file_obj)
 
-    # 开始提取
+    # Start extracting
     # res = extractor.extract()
     res = extractor.extract_timeout()
     print(res)

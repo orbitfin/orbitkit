@@ -49,19 +49,30 @@ Now edit any python file in your project:
 from orbitkit import FileDispatcher
 
 if __name__ == '__main__':
-    file_obj = FileDispatcher.get_params_template()
-    file_obj['bucket'] = 'vision-filemgt-dev'
-    file_obj['store_path'] = 'user-2/a14983bc-0779-471a-89e2-7a83d8cfc92b.docx'
-    file_obj['file_name'] = 'a14983bc-0779-471a-89e2-7a83d8cfc92b'
-    file_obj['file_type'] = 'docx'
-    file_dispatcher = FileDispatcher(file_obj=file_obj, extractor_config={
-        "extract_url": ""
+    # Init extractor
+    file_dispatcher = FileDispatcher(extractor_config={
+        "extract_url": "",
+        "aws_access_key_id": "",
+        "aws_secret_access_key": ""
     })
 
-    # Execute
-    # res = file_dispatcher.to_extract()
-    res = file_dispatcher.to_extract_timeout()
+    # Configure file info
+    file_obj = FileDispatcher.get_params_template()
+    file_obj.update({
+        'bucket': 'filing-reports',
+        'store_path': 'reports-data/test_extract/Prospekt Inv. BankInvest - 2020.09.21 clean.pdf',
+        'file_name': '',
+        'file_type': 'pdf',
+    })
+
+    # Init specific extractor
+    extractor = file_dispatcher.init_extractor(file_obj)
+
+    # Start extracting
+    # res = extractor.extract()
+    res = extractor.extract_timeout()
     print(res)
+    print(res['text'])
 
 ```
 
