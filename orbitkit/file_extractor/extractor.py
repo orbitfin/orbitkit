@@ -2,7 +2,7 @@ import signal
 import copy
 import boto3
 import abc
-from file_extractor.exception import FileExtractorTimeoutException
+from orbitkit.file_extractor.exception import FileExtractorTimeoutException
 from orbitkit.file_extractor.util import timeout_handler
 
 
