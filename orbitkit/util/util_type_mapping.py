@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+import threading
 
 '''
 Reference link: https://www.lifewire.com/file-extensions-and-mime-types-3469109
@@ -6,7 +6,7 @@ Reference link: https://www.lifewire.com/file-extensions-and-mime-types-3469109
 json / html / htm / doc / docx / ppt / pptx / xls / xlsx / js / pdf / txt
 '''
 
-mapping = {
+content_file_mapping = {
     '*': {'application': 'Binary file', 'mine': 'application/octet-stream'},
     # Others
     'json': {'application': 'json document', 'mine': 'application/json'},
@@ -217,12 +217,65 @@ def get_content_type_v1(extension):
     current_type = 'application/octet-stream'
 
     try:
-        current_type = mapping[extension]['mine']
+        current_type = content_file_mapping[extension]['mine']
     except Exception as e:
         pass
 
     return current_type
 
 
+class SingletonType(type):
+    _instance_lock = threading.Lock()
+
+    def __call__(cls, *args, **kwargs):
+        if not hasattr(cls, "_instance"):
+            with SingletonType._instance_lock:
+                if not hasattr(cls, "_instance"):
+                    cls._instance = super(SingletonType, cls).__call__(*args, **kwargs)
+        return cls._instance
+
+
+class SwitchContentFileType(metaclass=SingletonType):
+    def __init__(self):
+        self.content2file_type_mapping = {}
+        self.file2content_type_mapping = {}
+        # To load all mapping data
+        for key, value in content_file_mapping.items():
+            # print(key, value['mine'])
+            self.file2content_type_mapping[key] = value['mine']
+            if value['mine'] in self.content2file_type_mapping:
+                self.content2file_type_mapping[value['mine']].append(key)
+            else:
+                self.content2file_type_mapping[value['mine']] = [key]
+
+    def content2file_type(self, content_type):
+        current_type = ['*']
+        try:
+            current_type = self.content2file_type_mapping[str(content_type).strip().lower()]
+        except Exception as e:
+            pass
+        return current_type
+
+    def file2content_type(self, file_type):
+        current_type = 'application/octet-stream'
+        try:
+            current_type = self.file2content_type_mapping[str(file_type).strip().lower()]
+        except Exception as e:
+            pass
+        return current_type
+
+
+def content2file_type(content_type):
+    switch_content_file_type = SwitchContentFileType()
+    return switch_content_file_type.content2file_type(content_type)
+
+
+def file2content_type(file_type):
+    switch_content_file_type = SwitchContentFileType()
+    return switch_content_file_type.file2content_type(file_type)
+
+
 if __name__ == '__main__':
-    print(get_content_type_v1('json'))
+    # print(get_content_type_v1('json'))
+    print(content2file_type(content_type='application/octet-streamxxx'))
+    print(file2content_type(file_type='json sdsd'))
