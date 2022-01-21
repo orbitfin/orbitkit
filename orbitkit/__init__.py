@@ -7,7 +7,7 @@ from orbitkit.lark_send import FeiShuTalkChatBot
 
 name = 'orbitkit'
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 VERSION = __version__
 
 __all__ = [

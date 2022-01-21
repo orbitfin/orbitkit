@@ -32,7 +32,7 @@ setup(
         'Topic :: Software Development :: Libraries'
     ],
     install_requires=[
-        "boto3 >= 1.17.0",
+        "boto3 >= 1.16.0",
         "requests >= 2.12.1",
     ]
 )
