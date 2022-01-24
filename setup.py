@@ -1,9 +1,12 @@
+from os.path import dirname, join
 from setuptools import setup, find_packages
-import orbitkit
+
+with open(join(dirname(__file__), 'orbitkit/VERSION'), 'rb') as f:
+    version = f.read().decode('ascii').strip()
 
 setup(
     name='orbitkit',
-    version=orbitkit.__version__,
+    version=version,
     description=(
         'This project is only for Orbit Tech internal use.'
     ),
@@ -31,6 +34,8 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Libraries'
     ],
+    include_package_data=True,
+    zip_safe=False,
     install_requires=[
         "boto3 >= 1.16.0",
         "requests >= 2.12.1",

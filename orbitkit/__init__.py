@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-
+import pkgutil
 from orbitkit import util
 from orbitkit.file_extractor.dispatcher import FileDispatcher
 from orbitkit import id_srv
@@ -7,8 +6,7 @@ from orbitkit.lark_send import FeiShuTalkChatBot
 
 name = 'orbitkit'
 
-__version__ = '0.2.1'
-VERSION = __version__
+__version__ = (pkgutil.get_data(__package__, "VERSION") or b"").decode("ascii").strip()
 
 __all__ = [
     'util',
