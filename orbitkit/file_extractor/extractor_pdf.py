@@ -21,23 +21,24 @@ class FileExtractorPdf(FileExtractor):
         headers = {'Content-Type': 'application/json'}
         pay_load = json.dumps({'bucket': bucket_name, 'key': key})
         res = requests.post(url=self.extract_url, headers=headers, data=pay_load)
+        print(res)
         if res.status_code == 200:
             data = res.json()
             text = data['body']
 
-        if not text or not text.strip() or res.status_code != 200:
-            # process using S3 object
-            response = self.textract_client.start_document_text_detection(
-                DocumentLocation={'S3Object': {'Bucket': bucket_name, 'Name': key}}
-            )
-
-            # Get the text blocks
-            job_id = response['JobId']
-            try:
-                text = self.get_detected_text(job_id)
-            except Exception as ex:
-                pdf_ex = str(ex)
-                text = ''
+        # if not text or not text.strip() or res.status_code != 200:
+        #     # process using S3 object
+        #     response = self.textract_client.start_document_text_detection(
+        #         DocumentLocation={'S3Object': {'Bucket': bucket_name, 'Name': key}}
+        #     )
+        #
+        #     # Get the text blocks
+        #     job_id = response['JobId']
+        #     try:
+        #         text = self.get_detected_text(job_id)
+        #     except Exception as ex:
+        #         pdf_ex = str(ex)
+        #         text = ''
 
         if text.strip() == '':
             file_obj['text'] = ''

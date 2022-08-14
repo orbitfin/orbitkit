@@ -12,7 +12,7 @@ if __name__ == '__main__':
     file_obj = FileDispatcher.get_params_template()
     file_obj.update({
         'bucket': 'filing-reports',
-        'store_path': 'reports-data/test_extract/Prospekt Inv. BankInvest - 2020.09.21 clean.pdf',
+        'store_path': 'reports-data/stock_xtse/2022/05/03/seder_00000131_5196199.pdf',
         'file_name': '',
         'file_type': 'pdf',
     })
