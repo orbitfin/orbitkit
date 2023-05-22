@@ -10,7 +10,6 @@ __version__ = (pkgutil.get_data(__package__, "VERSION") or b"").decode("ascii").
 
 __all__ = [
     'util',
-    'FileDispatcher',
     'FeiShuTalkChatBot',
     'id_srv',
 ]
