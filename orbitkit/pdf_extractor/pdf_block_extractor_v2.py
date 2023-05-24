@@ -54,16 +54,42 @@ class PdfBlockExtractV2(PdfBlockExtractBase):
         if self.pages:
             for page_layout in page_layouts:
                 if page_layout.pageid in self.pages:
-                    self.loop_pages(page_layout)
+                    ordered_sentence_list_page = self.loop_pages(page_layout)
+                    # 合并入到总的列表中
+                    self.sentence_list.extend(ordered_sentence_list_page)
         else:
             # 解析所有页面
             for page_layout in page_layouts:
-                self.loop_pages(page_layout)
+                ordered_sentence_list_page = self.loop_pages(page_layout)
+                # 合并入到总的列表中
+                self.sentence_list.extend(ordered_sentence_list_page)
 
         end_extract_time = time.perf_counter() - start_extract_time
         logger.warning(f'End extract pdf with cost time {str(end_extract_time * 1000)}')
 
         return self.sentence_list
+
+    def extract_iter(self):
+        """入口方法
+        可以根据 specific_page 选择是提取单独一页的数据还是全部解析
+        """
+
+        start_extract_time = time.perf_counter()
+        logger.warning('Start extract pdf...')
+
+        page_layouts = extract_pages(self.local_path)
+        # 解析单独一页数据
+        if self.pages:
+            for page_layout in page_layouts:
+                if page_layout.pageid in self.pages:
+                    yield self.loop_pages(page_layout)
+        else:
+            # 解析所有页面
+            for page_layout in page_layouts:
+                yield self.loop_pages(page_layout)
+
+        end_extract_time = time.perf_counter() - start_extract_time
+        logger.warning(f'End extract pdf with cost time {str(end_extract_time * 1000)}')
 
     def loop_pages(self, page_layout):
         """处理单独一页的数据
@@ -74,9 +100,26 @@ class PdfBlockExtractV2(PdfBlockExtractBase):
 
         sentence_list_page = []
         # 尝试得到每一页的表格
-        tables = self.pdf_plumber_pages[page_layout.pageid - 1].extract_tables()
+        pdf_plumber_page = self.pdf_plumber_pages[page_layout.pageid - 1]
+        '''
+        https://github.com/jsvine/pdfplumber/issues/193
+        Memory issues on very large PDFs
+        
+        I found that after extracting text, the lru_cache was somehow not being cleared causing the memory to keep filling up and eventually run out of it. After some playing around I found the following code helped me. In the code below, I am clearing the page cache and the lru cache.
+        with pdfplumber.open("path-to-pdf/my.pdf") as pdf:
+            for page in pdf.pages:
+            text = page.extract_text(layout=True)
+            page.flush_cache()
+        
+           # This was the fn where cache is implemented
+           page.get_text_layout.cache_clear()     `
+        PS: I am currently using pdfplumber version 0.71. I hope this helps someone.
+        '''
+        tables = pdf_plumber_page.extract_tables()
+        pdf_plumber_page.flush_cache()
+
         # 过滤无用表格，并构建表格扩展对象
-        tables_obj = self.__filter_extend_tables(tables)
+        tables_obj = self._filter_extend_tables(tables)
 
         # 遍历页面所有的元素开始解析
         index = 1
@@ -91,7 +134,7 @@ class PdfBlockExtractV2(PdfBlockExtractBase):
 
                 # If element in table，则统一处理本页的 table
                 if len(tables_obj) > 0:
-                    is_exist_in_table = self.__element_in_table(element, index, tables_obj)
+                    is_exist_in_table = self._element_in_table(element, index, tables_obj)
                     if is_exist_in_table:
                         index += 1
                         continue
@@ -186,7 +229,7 @@ class PdfBlockExtractV2(PdfBlockExtractBase):
                 "id": f"l_{id_srv.get_random_short_id()}",
                 "page": page_layout.pageid,
                 "seq_no": min(item_table['index_set']),
-                "sentence": self.__get_html_table_format(item_table['table']),
+                "sentence": self._get_html_table_format(item_table['table']),
                 "type": "table",
                 "text_location": {
                     "location": [item_table['location']]
@@ -201,13 +244,10 @@ class PdfBlockExtractV2(PdfBlockExtractBase):
         for ind, item in enumerate(ordered_sentence_list_page):
             item['seq_no'] = ind + 1
 
-        # for itemxxx in ordered_sentence_list_page:
-        #     print(itemxxx)
-
         # 合并入到总的列表中
-        self.sentence_list.extend(ordered_sentence_list_page)
+        return ordered_sentence_list_page
 
-    def __element_in_table(self, element: Union[LTTextContainer], index: int, tables_obj):
+    def _element_in_table(self, element: Union[LTTextContainer], index: int, tables_obj):
         is_exist_in_table = False
         for table_info in tables_obj:
             if element.get_text().strip() in table_info['values_set']:
@@ -220,7 +260,7 @@ class PdfBlockExtractV2(PdfBlockExtractBase):
                 # break
         return is_exist_in_table
 
-    def __filter_extend_tables(self, tables: List[List[List[Optional[str]]]]):
+    def _filter_extend_tables(self, tables: List[List[List[Optional[str]]]]):
         """对 table 信息进行扩展
         table_info = {
             'x0_list': [],
@@ -280,7 +320,7 @@ class PdfBlockExtractV2(PdfBlockExtractBase):
 
         return tables_obj
 
-    def __get_html_table_format(self, table):
+    def _get_html_table_format(self, table):
         tb = PrettyTable()
         for row in table:
             tb.add_row(row)

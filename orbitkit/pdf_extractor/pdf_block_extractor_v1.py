@@ -30,6 +30,7 @@ class PdfBlockExtractV1(PdfBlockExtractBase):
 
     def loop_pages(self, page_layout):
         index = 1
+        sentence_list_page = []
         for element in page_layout:
             # 如果页面的元素是 LTTextContainer 则直接拿数据
             if isinstance(element, LTTextContainer):
@@ -51,7 +52,7 @@ class PdfBlockExtractV1(PdfBlockExtractBase):
                     }
                 }
                 _txt_data.update(self.extend_meta)  # 合并额外信息
-                self.sentence_list.append(_txt_data)
+                sentence_list_page.append(_txt_data)
                 index += 1
 
             # 如果页面的元素是 LTFigure 则拼接字符拿数据
@@ -93,11 +94,14 @@ class PdfBlockExtractV1(PdfBlockExtractBase):
                             "location": [location]}
                     }
                     _txt_data.update(self.extend_meta)  # 合并额外信息
-                    self.sentence_list.append(_txt_data)
+                    sentence_list_page.append(_txt_data)
                     index += 1
 
             # 如果两个 if 都匹配不上则说明此 element 没有数据
             pass
+
+        # 最后返回当页的提取结果
+        return sentence_list_page
 
     def extract(self):
         """入口方法
@@ -111,16 +115,41 @@ class PdfBlockExtractV1(PdfBlockExtractBase):
         if self.pages:
             for page_layout in page_layouts:
                 if page_layout.pageid in self.pages:
-                    self.loop_pages(page_layout)
+                    ordered_sentence_list_page = self.loop_pages(page_layout)
+                    # 合并入到总的列表中
+                    self.sentence_list.extend(ordered_sentence_list_page)
         else:
             # 解析所有页面
             for page_layout in page_layouts:
-                self.loop_pages(page_layout)
+                ordered_sentence_list_page = self.loop_pages(page_layout)
+                # 合并入到总的列表中
+                self.sentence_list.extend(ordered_sentence_list_page)
 
         end_extract_time = time.perf_counter() - start_extract_time
         logger.warning(f'End extract pdf with cost time {str(end_extract_time * 1000)}')
 
         return self.sentence_list
+
+    def extract_iter(self):
+        """入口方法
+        可以根据 specific_page 选择是提取单独一页的数据还是全部解析
+        """
+        start_extract_time = time.perf_counter()
+        logger.warning('Start extract pdf...')
+
+        page_layouts = extract_pages(self.local_path)
+        # 解析单独一页数据
+        if self.pages:
+            for page_layout in page_layouts:
+                if page_layout.pageid in self.pages:
+                    yield self.loop_pages(page_layout)
+        else:
+            # 解析所有页面
+            for page_layout in page_layouts:
+                yield self.loop_pages(page_layout)
+
+        end_extract_time = time.perf_counter() - start_extract_time
+        logger.warning(f'End extract pdf with cost time {str(end_extract_time * 1000)}')
 
 
 if __name__ == '__main__':
