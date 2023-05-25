@@ -46,34 +46,13 @@ pip install orbitkit
 Now edit any python file in your project:
 
 ```python
-from orbitkit import FileDispatcher
+from pdf_extractor.pdf_block_extractor_v2 import PdfBlockExtractV2
 
-if __name__ == '__main__':
-    # Init extractor
-    file_dispatcher = FileDispatcher(extractor_config={
-        "extract_url": "",
-        "aws_access_key_id": "",
-        "aws_secret_access_key": ""
-    })
+pdf_block_extract = PdfBlockExtractV2(local_path='example.pdf', extend_meta={})
+text_block_arr = pdf_block_extract.extract()
 
-    # Configure file info
-    file_obj = FileDispatcher.get_params_template()
-    file_obj.update({
-        'bucket': 'filing-reports',
-        'store_path': 'reports-data/test_extract/Prospekt Inv. BankInvest - 2020.09.21 clean.pdf',
-        'file_name': '',
-        'file_type': 'pdf',
-    })
-
-    # Init specific extractor
-    extractor = file_dispatcher.init_extractor(file_obj)
-
-    # Start extracting
-    # res = extractor.extract()
-    res = extractor.extract_timeout()
-    print(res)
-    print(res['text'])
-
+for item in text_block_arr:
+    print(item)
 ```
 
 We'd also like to configure `extract_url` as your pleased.
