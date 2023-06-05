@@ -1,22 +1,48 @@
 import threading
+from enum import Enum
 
 '''
 Reference link: https://www.lifewire.com/file-extensions-and-mime-types-3469109
-
-json / html / htm / doc / docx / ppt / pptx / xls / xlsx / js / pdf / txt
+# Applications
+doc / docx / ppt / pptx / xls / xlsx / pdf / json / js
+# Text Files
+html / htm / txt
 '''
 
-content_file_mapping = {
-    '*': {'application': 'Binary file', 'mine': 'application/octet-stream'},
-    # Others
-    'json': {'application': 'json document', 'mine': 'application/json'},
-    'docx': {'application': 'docx document', 'mine': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'},
-    'pptx': {'application': 'pptx document', 'mine': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'},
-    'xlsx': {'application': 'xlsx document', 'mine': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'},
-    'pdf': {'application': 'pdf document', 'mine': 'application/pdf'},
+
+class ExtenCons(Enum):
+    '''
+    Useful constant variables
+    '''
+
+    EXTEN_OCTET_STREAM = 'application/octet-stream'
+    # Application
+    EXTEN_APPLI_PDF = 'application/pdf'
+    EXTEN_APPLI_JSON = 'application/json'
+    EXTEN_APPLI_JS = 'application/x-javascript'
+    EXTEN_APPLI_DOC = 'application/msword'
+    EXTEN_APPLI_DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    EXTEN_APPLI_XLS = 'application/vnd.ms-excel'
+    EXTEN_APPLI_XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    EXTEN_APPLI_PPT = 'application/vnd.ms-powerpoint'
+    EXTEN_APPLI_PPTX = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    # Text Files
+    EXTEN_TEXT_HTML = 'text/html'
+    EXTEN_TEXT_HTM = 'text/html'
+    EXTEN_TEXT_TXT = 'text/plain'
+    EXTEN_TEXT_HTML_UTF8 = 'text/html;charset=utf-8'
+    EXTEN_TEXT_HTM_UTF8 = 'text/html;charset=utf-8'
+    EXTEN_TEXT_TXT_UTF8 = 'text/plain;charset=utf-8'
+
+
+_content_file_mapping = {
     # MIME Types: Applications
+    '*': {'application': 'Binary file', 'mine': 'application/octet-stream'},
+    'pdf': {'application': 'pdf document', 'mine': 'application/pdf'},
+    'json': {'application': 'json document', 'mine': 'application/json'},
     'evy': {'application': 'Corel Envoy', 'mine': 'application/envoy'},
     'doc': {'application': 'Word document', 'mine': 'application/msword'},
+    'docx': {'application': 'docx document', 'mine': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'},
     'fif': {'application': 'fractal image file', 'mine': 'application/fractals'},
     'spl': {'application': 'Windows print spool file', 'mine': 'application/futuresplash'},
     'hta': {'application': 'HTML application', 'mine': 'application/hta'},
@@ -44,6 +70,7 @@ content_file_mapping = {
     'xlc': {'application': 'Excel chart', 'mine': 'application/vnd.ms-excel'},
     'xlm': {'application': 'Excel macro', 'mine': 'application/vnd.ms-excel'},
     'xls': {'application': 'Excel spreadsheet', 'mine': 'application/vnd.ms-excel'},
+    'xlsx': {'application': 'xlsx document', 'mine': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'},
     'xlt': {'application': 'Excel template', 'mine': 'application/vnd.ms-excel'},
     'xlw': {'application': 'Excel worspace', 'mine': 'application/vnd.ms-excel'},
     'msg': {'application': 'Outlook mail message', 'mine': 'application/vnd.ms-outlook'},
@@ -53,6 +80,7 @@ content_file_mapping = {
     'pot': {'application': 'PowerPoint template', 'mine': 'application/vnd.ms-powerpoint'},
     'pps': {'application': 'PowerPoint slide show', 'mine': 'application/vnd.ms-powerpoint'},
     'ppt': {'application': 'PowerPoint presentation', 'mine': 'application/vnd.ms-powerpoint'},
+    'pptx': {'application': 'pptx document', 'mine': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'},
     'mpp': {'application': 'Microsoft Project file', 'mine': 'application/vnd.ms-project'},
     'wcm': {'application': 'WordPerfect macro', 'mine': 'application/vnd.ms-works'},
     'wdb': {'application': 'Microsoft Works database', 'mine': 'application/vnd.ms-works'},
@@ -217,30 +245,30 @@ def get_content_type_v1(extension):
     current_type = 'application/octet-stream'
 
     try:
-        current_type = content_file_mapping[extension]['mine']
+        current_type = _content_file_mapping[extension]['mine']
     except Exception as e:
         pass
 
     return current_type
 
 
-class SingletonType(type):
+class _SingletonType(type):
     _instance_lock = threading.Lock()
 
     def __call__(cls, *args, **kwargs):
         if not hasattr(cls, "_instance"):
-            with SingletonType._instance_lock:
+            with _SingletonType._instance_lock:
                 if not hasattr(cls, "_instance"):
-                    cls._instance = super(SingletonType, cls).__call__(*args, **kwargs)
+                    cls._instance = super(_SingletonType, cls).__call__(*args, **kwargs)
         return cls._instance
 
 
-class SwitchContentFileType(metaclass=SingletonType):
+class _SwitchContentFileType(metaclass=_SingletonType):
     def __init__(self):
         self.content2file_type_mapping = {}
         self.file2content_type_mapping = {}
         # To load all mapping data
-        for key, value in content_file_mapping.items():
+        for key, value in _content_file_mapping.items():
             # print(key, value['mine'])
             self.file2content_type_mapping[key] = value['mine']
             if value['mine'] in self.content2file_type_mapping:
@@ -266,16 +294,27 @@ class SwitchContentFileType(metaclass=SingletonType):
 
 
 def content2file_type(content_type):
-    switch_content_file_type = SwitchContentFileType()
+    switch_content_file_type = _SwitchContentFileType()
     return switch_content_file_type.content2file_type(content_type)
 
 
 def file2content_type(file_type):
-    switch_content_file_type = SwitchContentFileType()
+    switch_content_file_type = _SwitchContentFileType()
     return switch_content_file_type.file2content_type(file_type)
 
 
-if __name__ == '__main__':
-    # print(get_content_type_v1('json'))
-    print(content2file_type(content_type='application/octet-streamxxx'))
-    print(file2content_type(file_type='json sdsd'))
+# -------------------------------------------------------------------------------------------------------------
+# Below are the recommended methods
+# -------------------------------------------------------------------------------------------------------------
+
+def get_content_type_4_filename(filename: str, text_with_utf8=False):
+    # If no '.' in filename then get the full filename instead.
+    file_extension = filename.split('.')[-1]
+
+    try:
+        extension = _content_file_mapping[file_extension.strip().lower()]['mine']
+        if text_with_utf8 and extension.startswith('text/'):
+            extension += ';charset=utf-8'
+        return extension
+    except:
+        return 'application/octet-stream'
