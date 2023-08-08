@@ -1,11 +1,21 @@
 import time
 from typing import Optional, List
-from pdfminer.high_level import extract_pages
-from pdfminer.layout import LTTextContainer, LTFigure, LTChar
 from orbitkit import id_srv
 from orbitkit.pdf_extractor.pdf_block_extractor_base import PdfBlockExtractBase
 import logging
-from Crypto.Cipher import AES
+
+try:
+    from pdfminer.high_level import extract_pages
+    from pdfminer.layout import LTTextContainer, LTFigure, LTChar
+    import pdfplumber
+    from Crypto.Cipher import AES
+except ImportError:
+    raise ValueError(
+        "Please install below packages before using PDF Extractor function."
+        "- pdfminer"
+        "- pdfplumber >= 0.9.0"
+        "- pycryptodome >= 3.11.0"
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +160,3 @@ class PdfBlockExtractV1(PdfBlockExtractBase):
 
         end_extract_time = time.perf_counter() - start_extract_time
         logger.warning(f'End extract pdf with cost time {str(end_extract_time * 1000)}')
-
-
-if __name__ == '__main__':
-    pass

@@ -1,13 +1,22 @@
 import time
 from typing import Optional, List, Union
-from pdfminer.high_level import extract_pages
-from pdfminer.layout import LTTextContainer, LTFigure, LTChar
-import pdfplumber
 import logging
 from orbitkit import id_srv
 from prettytable import PrettyTable
 from orbitkit.pdf_extractor.pdf_block_extractor_base import PdfBlockExtractBase
-from Crypto.Cipher import AES
+
+try:
+    from pdfminer.high_level import extract_pages
+    from pdfminer.layout import LTTextContainer, LTFigure, LTChar
+    import pdfplumber
+    from Crypto.Cipher import AES
+except ImportError:
+    raise ValueError(
+        "Please install below packages before using PDF Extractor function."
+        "- pdfminer"
+        "- pdfplumber >= 0.9.0"
+        "- pycryptodome >= 3.11.0"
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -88,8 +97,7 @@ class PdfBlockExtractV2(PdfBlockExtractBase):
             for page_layout in page_layouts:
                 yield self.loop_pages(page_layout)
 
-        end_extract_time = time.perf_counter() - start_extract_time
-        logger.warning(f'End extract pdf with cost time {str(end_extract_time * 1000)}')
+        logger.warning(f'End extract pdf with cost time {str((time.perf_counter() - start_extract_time) * 1000)}')
 
     def loop_pages(self, page_layout):
         """处理单独一页的数据
@@ -326,7 +334,3 @@ class PdfBlockExtractV2(PdfBlockExtractBase):
             tb.add_row(row)
 
         return tb.get_html_string(header=False)
-
-
-if __name__ == '__main__':
-    pass
