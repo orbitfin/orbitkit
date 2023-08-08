@@ -3,6 +3,7 @@ from .common import (
     gen_ot_uuid_random,
     gen_ot_uuid_by_key,
     remove_all_tags_v1,
+    get_from_dict_or_env,
 )
 from .util_date import (
     DateEncoder,
