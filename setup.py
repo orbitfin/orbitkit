@@ -39,8 +39,7 @@ setup(
     install_requires=[
         "boto3 >= 1.16.0",
         "requests >= 2.12.1",
-        "pdfplumber >= 0.9.0",
-        "pycryptodome >= 3.11.0",
         "prettytable >= 3.0.0",
+        "pytz >= 2022.1",
     ]
 )

@@ -54,8 +54,8 @@ class PdfExtractor:
             kwargs, "aws_secret_access_key", "AWS_SECRET_ACCESS_KEY",
         )
 
-        self.s3_resource = boto3.resource('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-        self.s3_client = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+        self._s3_resource = boto3.resource('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+        self._s3_client = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
 
     def extract(self):
         if self.temp_folder:
@@ -76,7 +76,7 @@ class PdfExtractor:
         # 开始尝试提取...
         # 下载文件到 input folder
         file_local_path_in = os.path.join(input_folder, 'tmp_filename.pdf')
-        self.s3_resource.Bucket(s3_path_obj['bucket']).download_file(s3_path_obj['store_path'], file_local_path_in)
+        self._s3_resource.Bucket(s3_path_obj['bucket']).download_file(s3_path_obj['store_path'], file_local_path_in)
         logger.info('Download file successfully...')
 
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  按页面提取文本 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -132,7 +132,7 @@ class PdfExtractor:
             raise CidEncryptionException()
         # Validation ------------------------------------------------------------------------------------
 
-        self.s3_client.upload_file(
+        self._s3_client.upload_file(
             os.path.join(input_folder, 'pages.txt'), s3_path_obj['bucket'], os.path.join(self.txt_vector, s3_path_obj['store_path'], 'pages.txt'),
             ExtraArgs={'ContentType': ExtenCons.EXTEN_TEXT_TXT_UTF8.value}
         )
@@ -162,7 +162,7 @@ class PdfExtractor:
                 except StopIteration:
                     break
 
-        self.s3_client.upload_file(
+        self._s3_client.upload_file(
             os.path.join(input_folder, 'blocks.txt'), s3_path_obj['bucket'], os.path.join(self.txt_vector, s3_path_obj['store_path'], 'blocks.txt'),
             ExtraArgs={'ContentType': ExtenCons.EXTEN_TEXT_TXT_UTF8.value}
         )
@@ -181,6 +181,6 @@ class PdfExtractor:
             "others": {}
         }
 
-        object_put = self.s3_resource.Object(s3_path_obj['bucket'], os.path.join(self.txt_vector, s3_path_obj['store_path'], 'metadata.txt'))
+        object_put = self._s3_resource.Object(s3_path_obj['bucket'], os.path.join(self.txt_vector, s3_path_obj['store_path'], 'metadata.txt'))
         object_put.put(Body=json.dumps(extract_meta, ensure_ascii=False), ContentType=ExtenCons.EXTEN_TEXT_TXT_UTF8.value)
         logger.info("[meta] Store extract meta info successfully...")
