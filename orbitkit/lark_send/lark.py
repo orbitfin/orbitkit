@@ -3,6 +3,7 @@ import json
 import time
 import logging
 from enum import Enum
+from typing import Optional, List
 
 try:
     JSONDecodeError = json.decoder.JSONDecodeError
@@ -33,47 +34,72 @@ class FeiShuTalkChatBot:
         self.pc_slide = pc_slide
         self.fail_notice = fail_notice
 
-    def success(self, message, title='Successfully'):
-        self.send_text(title=title, message=message, level=NotifyLevel.SUCCESS.value)
+    def success(self, message, title: str = 'Successfully', ats: Optional[List] = None):
+        self.send_text(title=title, message=message, level=NotifyLevel.SUCCESS.value, ats=ats)
 
-    def info(self, message, title='Notification'):
-        self.send_text(title=title, message=message, level=NotifyLevel.INFO.value)
+    def info(self, message, title: str = 'Notification', ats: Optional[List] = None):
+        self.send_text(title=title, message=message, level=NotifyLevel.INFO.value, ats=ats)
 
-    def warning(self, message, title='Warning'):
-        self.send_text(title=title, message=message, level=NotifyLevel.WARNING.value)
+    def warning(self, message, title: str = 'Warning', ats: Optional[List] = None):
+        self.send_text(title=title, message=message, level=NotifyLevel.WARNING.value, ats=ats)
 
-    def error(self, message, title='Error'):
-        self.send_text(title=title, message=message, level=NotifyLevel.DANGER.value)
+    def error(self, message, title: str = 'Error', ats: Optional[List] = None):
+        self.send_text(title=title, message=message, level=NotifyLevel.DANGER.value, ats=ats)
 
-    def send_text(self, title, message, level):
+    def send_text(self, title, message, level, ats: Optional[List] = None):
         """
         :param title:
         :param message:
         :param level:
         :return:
         """
-        data = {"msg_type": "interactive", "card": {
-            "elements": [
-                {
-                    "tag": "hr"
-                },
-                {
+        data = {
+            "msg_type": "interactive",
+            "card": {
+                "elements": [
+                    {
+                        "tag": "hr"
+                    },
+                    {
+                        "tag": "div",
+                        "text": {
+                            "tag": "lark_md",
+                            "content": message
+                        }
+                    },
+                ],
+                "header": {
+                    "title": {
+                        "content": title,
+                        "tag": "plain_text"
+                    },
+                    "template": level
+                }
+            }}
+
+        # Put @ people
+        if ats:
+            if len(ats) == 1 and ats[0] == "all":
+                data["card"]["elements"].append({
                     "tag": "div",
                     "text": {
                         "tag": "lark_md",
-                        "content": message
+                        "content": "At <at id=all></at>",
                     }
-                },
-
-            ],
-            "header": {
-                "title": {
-                    "content": title,
-                    "tag": "plain_text"
-                },
-                "template": level
-            }
-        }}
+                })
+            elif len(ats) > 0:
+                at_list_template = []
+                for at in ats:
+                    at_list_template.append({
+                        "tag": "div",
+                        "text": {
+                            "tag": "lark_md",
+                            "content": "At <at id=" + at + "></at>",
+                        }
+                    })
+                data["card"]["elements"].extend(at_list_template)
+            else:
+                raise Exception("Invalid ats.")
 
         return self.post(data)
 
