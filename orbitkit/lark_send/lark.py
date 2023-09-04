@@ -3,7 +3,7 @@ import json
 import time
 import logging
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 try:
     JSONDecodeError = json.decoder.JSONDecodeError
@@ -22,6 +22,8 @@ class FeiShuTalkChatBot:
     def __init__(self, webhook, secret=None, pc_slide=False, fail_notice=False):
         '''
         机器人初始化
+        Reference doc: https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot
+
         :param webhook: 飞书群自定义机器人webhook地址
         :param secret: 机器人安全设置页面勾选“加签”时需要传入的密钥
         :param pc_slide: 消息链接打开方式，默认False为浏览器打开，设置为True时为PC端侧边栏打开
@@ -34,23 +36,25 @@ class FeiShuTalkChatBot:
         self.pc_slide = pc_slide
         self.fail_notice = fail_notice
 
-    def success(self, message, title: str = 'Successfully', ats: Optional[List] = None):
-        self.send_text(title=title, message=message, level=NotifyLevel.SUCCESS.value, ats=ats)
+    def success(self, message, title: str = 'Successfully', ats: Optional[List] = None, action=None):
+        self.send_text(title=title, message=message, level=NotifyLevel.SUCCESS.value, ats=ats, action=action)
 
-    def info(self, message, title: str = 'Notification', ats: Optional[List] = None):
-        self.send_text(title=title, message=message, level=NotifyLevel.INFO.value, ats=ats)
+    def info(self, message, title: str = 'Notification', ats: Optional[List] = None, action=None):
+        self.send_text(title=title, message=message, level=NotifyLevel.INFO.value, ats=ats, action=action)
 
-    def warning(self, message, title: str = 'Warning', ats: Optional[List] = None):
-        self.send_text(title=title, message=message, level=NotifyLevel.WARNING.value, ats=ats)
+    def warning(self, message, title: str = 'Warning', ats: Optional[List] = None, action=None):
+        self.send_text(title=title, message=message, level=NotifyLevel.WARNING.value, ats=ats, action=action)
 
-    def error(self, message, title: str = 'Error', ats: Optional[List] = None):
-        self.send_text(title=title, message=message, level=NotifyLevel.DANGER.value, ats=ats)
+    def error(self, message, title: str = 'Error', ats: Optional[List] = None, action=None):
+        self.send_text(title=title, message=message, level=NotifyLevel.DANGER.value, ats=ats, action=action)
 
-    def send_text(self, title, message, level, ats: Optional[List] = None):
+    def send_text(self, title, message, level, ats: Optional[List] = None, action: Optional[Dict] = None):
         """
         :param title:
         :param message:
         :param level:
+        :param ats:
+        :param action: { "direction": "DOWN", actions: {} }
         :return:
         """
         data = {
@@ -66,7 +70,7 @@ class FeiShuTalkChatBot:
                             "tag": "lark_md",
                             "content": message
                         }
-                    },
+                    }
                 ],
                 "header": {
                     "title": {
@@ -100,6 +104,18 @@ class FeiShuTalkChatBot:
                 data["card"]["elements"].extend(at_list_template)
             else:
                 raise Exception("Invalid ats.")
+
+        if action:
+            if action["direction"] == "UP":
+                direction = "UP"
+            else:
+                direction = "DOWN"
+
+            if direction == "DOWN":
+                data["card"]["elements"].append({"tag": "hr"})
+                data["card"]["elements"].append(action["actions"])
+            if direction == "UP":
+                data["card"]["elements"].insert(0, action["actions"])
 
         return self.post(data)
 
@@ -152,6 +168,4 @@ class FeiShuTalkChatBot:
 
 
 if __name__ == '__main__':
-    webhook = ""
-    feishu_talk_chat_bot = FeiShuTalkChatBot(webhook=webhook)
-    feishu_talk_chat_bot.warning(message='I am a test!')
+    pass
