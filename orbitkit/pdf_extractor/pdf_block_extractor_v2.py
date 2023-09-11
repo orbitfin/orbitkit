@@ -12,9 +12,9 @@ try:
     from Crypto.Cipher import AES
 except ImportError:
     raise ValueError(
-        "Please install below packages before using PDF Extractor function."
-        "- pdfminer"
-        "- pdfplumber >= 0.9.0"
+        "Please install below packages before using PDF Extractor function.\n"
+        "- pdfminer\n"
+        "- pdfplumber >= 0.9.0\n"
         "- pycryptodome >= 3.11.0"
     )
 
