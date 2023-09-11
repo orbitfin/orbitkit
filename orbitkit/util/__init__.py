@@ -9,6 +9,8 @@ from .util_date import (
     DateEncoder,
     get_date_range_list_v1,
     get_date_range_list_v2,
+    get_next_day,
+    get_next_workday_cn,
 )
 from .util_type_mapping import (
     get_content_type_v1,
