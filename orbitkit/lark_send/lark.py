@@ -79,7 +79,8 @@ class FeiShuTalkChatBot:
                     },
                     "template": level
                 }
-            }}
+            }
+        }
 
         # Put @ people
         if ats:
