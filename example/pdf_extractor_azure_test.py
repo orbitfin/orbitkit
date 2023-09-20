@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 def extract_pdf_from_s3(s3_path: str):
     pdf_extractor = PdfExtractorAzure(s3_path=s3_path,
                                       txt_vector="",
-                                      # temp_folder=dirname(abspath(__file__)),
+                                      temp_folder=dirname(abspath(__file__)),
                                       aws_access_key_id="",
                                       aws_secret_access_key="",
                                       azure_doc_intelligence_endpoint="",
@@ -24,7 +24,7 @@ def extract_pdf_from_s3(s3_path: str):
 
 if __name__ == "__main__":
     extract_list = [
-        # "s3://orbit-common-resources/pdf-test/AEBD1951A1EA1DC9261E7A26DCF916D3.pdf",
+        "s3://orbit-common-resources/pdf-test/202105310903058865590189.pdf",
     ]
 
     for item in extract_list:

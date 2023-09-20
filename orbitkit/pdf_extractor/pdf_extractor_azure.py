@@ -10,6 +10,7 @@ from orbitkit.util.util_aws import s3_split_path
 from orbitkit.util import get_from_dict_or_env
 from orbitkit.util import ExtenCons
 from typing import Optional
+import pickle
 
 try:
     from azure.core.credentials import AzureKeyCredential
@@ -104,6 +105,17 @@ class PdfExtractorAzure:
 
             logger.info("Extract text by using Azure successfully...")
 
+            # 将字节流保存到文件
+            pkl_file = os.path.join(input_folder, 'azure_reg.pkl')
+            with open(pkl_file, 'wb') as file:
+                file.write(pickle.dumps(result))
+
+            self._s3_client.upload_file(
+                pkl_file, s3_path_obj['bucket'], os.path.join(self.txt_vector, s3_path_obj['store_path'], 'azure_reg.pkl'),
+                ExtraArgs={'ContentType': ExtenCons.EXTEN_OCTET_STREAM.value}
+            )
+            logger.info("[pkl] Store pkl result successfully...")
+
             rs = ResultStandardization(result)
             rs.result_txt_writer(output_path=input_folder)
             logger.info("Write [blocks.txt] and [pages.txt] successfully...")
@@ -143,10 +155,23 @@ class ResultStandardization:
     """
 
     def __init__(self, res):
-        self.result = res
+
         self.pdf_height = dict()
-        for page in self.result.pages:
+        for page in res.pages:
             self.pdf_height[page.page_number] = page.height
+
+        self.paragraphs, self.tables = dict(), dict()
+        for paragraph in res.paragraphs:
+            if paragraph.bounding_regions[0].page_number not in self.paragraphs.keys():
+                self.paragraphs[paragraph.bounding_regions[0].page_number] = [paragraph]
+            else:
+                self.paragraphs[paragraph.bounding_regions[0].page_number].append(paragraph)
+        for table in res.tables:
+            if table.bounding_regions[0].page_number not in self.tables.keys():
+                self.tables[table.bounding_regions[0].page_number] = [table]
+            else:
+                self.tables[table.bounding_regions[0].page_number].append(table)
+
         self.table_content = []
 
     def paragraph_reader(self, item):
@@ -163,7 +188,7 @@ class ResultStandardization:
         for content_span in self.table_content:
             if content == content_span[0]:
                 if spans[0] == content_span[1][0] and spans[1] == content_span[1][1]:
-                    return page_num, None
+                    return None
         meta = {
             "id": "l_" + id_srv.get_random_short_id(),
             "page": page_num,
@@ -172,7 +197,7 @@ class ResultStandardization:
             "type": "sentence",
             "text_location": {"location": [location]},
         }
-        return page_num, meta
+        return meta
 
     def table_reader(self, item):
         """
@@ -216,77 +241,74 @@ class ResultStandardization:
             "type": "table",
             "text_location": {"location": [location]},
         }
-        return page_num, meta
+        return meta
 
-    def standardize2json(self):
+    def standardize2json(self, page):
         """
-        将Azure提取结果转为json列表
+        将指定页的Azure提取结果转为json列表
         """
-        tables = self.result.tables
-        paragraphs = self.result.paragraphs
+        # 从结果中提取指定页的段落和表格
+        tables = self.tables.get(page, [])
+        paragraphs = self.paragraphs.get(page, [])
 
         # 记录表格 offset 和 length 用于段落去重
+        self.table_content = []
         for table in tables:
             for cell in table.cells:
                 if cell.content:
                     spans = [cell.spans[0].offset, cell.spans[0].length]
                     self.table_content.append([cell.content, spans])
 
-        page_json_set = dict()
+        pages = list()
         # 段落内容格式化
         for item in paragraphs:
-            page, meta = self.paragraph_reader(item)
+            meta = self.paragraph_reader(item)
             if meta:
-                if page not in page_json_set.keys():
-                    page_json_set[page] = [meta]
-                else:
-                    page_json_set[page].append(meta)
-
+                pages.append(meta)
         # 表格内容格式化
         for item in tables:
-            page, meta = self.table_reader(item)
-            if page not in page_json_set.keys():
-                page_json_set[page] = [meta]
+            meta = self.table_reader(item)
+            if len(pages) == 0:
+                pages.append(meta)
             else:
-                for i in range(len(page_json_set[page])):
+                for i in range(len(pages)):
                     # 根据 text_location 坐标将表格插入到段落中
-                    if meta['text_location']['location'][0][1] > page_json_set[page][i]['text_location']['location'][0][1]:
-                        page_json_set[page].insert(i, meta)
+                    if meta['text_location']['location'][0][1] > pages[i]['text_location']['location'][0][1]:
+                        pages.insert(i, meta)
                         break
-                    if i == len(page_json_set[page]) - 1:
-                        page_json_set[page].append(meta)
-
+                    if i == len(pages) - 1:
+                        pages.append(meta)
         # 句子顺序编号
-        db_record_list = []
-        for page, json_list in page_json_set.items():
-            for i, j in enumerate(json_list):
-                j['seq_no'] = i + 1
-                db_record_list.append(j)
+        for i, item in enumerate(pages):
+            item['seq_no'] = i + 1
 
-        return db_record_list
+        return pages
 
     def result_txt_writer(self, output_path):
-        record_list = self.standardize2json()
         if not os.path.exists(output_path):
             os.makedirs(output_path)
+        if os.path.exists(os.path.join(output_path, 'blocks.txt')):
+            os.remove(os.path.join(output_path, 'blocks.txt'))
+        if os.path.exists(os.path.join(output_path, 'pages.txt')):
+            os.remove(os.path.join(output_path, 'pages.txt'))
 
-        # block.txt
-        with open(os.path.join(output_path, 'blocks.txt'), 'w+', encoding='utf-8') as f:
-            for i in record_list:
-                f.write(json.dumps(i, ensure_ascii=False) + '\n')
+        block_file = open(os.path.join(output_path, 'blocks.txt'), 'a+', encoding='utf-8')
+        page_file = open(os.path.join(output_path, 'pages.txt'), 'a+', encoding='utf-8')
 
-        # pages.txt
-        page_list = {}
-        for i in record_list:
-            if i['page'] not in page_list.keys():
-                page_list[i['page']] = i['sentence']
-            else:
-                page_list[i['page']] += '\n' + i['sentence']
-        with open(os.path.join(output_path, 'pages.txt'), 'w+', encoding='utf-8') as f:
-            for k, v in page_list.items():
-                meta = {
-                    "id": "p_" + id_srv.get_random_short_id(),
-                    "page": k,
-                    "sentence": v
-                }
-                f.write(json.dumps(meta, ensure_ascii=False) + '\n')
+        for page in range(1, len(self.pdf_height) + 1):
+            record_list = self.standardize2json(page)
+
+            # block.txt
+            for item in record_list:
+                block_file.write(json.dumps(item, ensure_ascii=False) + '\n')
+
+            # pages.txt
+            meta = {
+                "id": "p_" + id_srv.get_random_short_id(),
+                "page": page,
+                "sentence": '\n'.join([item['sentence'] for item in record_list])
+            }
+            page_file.write(json.dumps(meta, ensure_ascii=False) + '\n')
+
+        block_file.close()
+        page_file.close()
