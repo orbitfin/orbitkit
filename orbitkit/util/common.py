@@ -1,3 +1,4 @@
+import datetime
 import re
 import os
 import uuid
@@ -64,7 +65,23 @@ def get_from_env(key: str, env_key: str, default: Optional[str] = None) -> str:
         )
 
 
+def date_2_path(date_str: str) -> str:
+    """
+    2023-09-08T09:08 -> 2023/09/08
+    :param date_str:
+    :return:
+    """
+    if len(date_str) < 10:
+        raise Exception("The length of Date str is not enough.")
+
+    date_pre10_str = date_str[0:10]
+    try:
+        date_obj = datetime.datetime.strptime(date_pre10_str, '%Y-%m-%d')
+    except:
+        raise Exception("Wrong date format, should be in %Y-%m-%d format.")
+
+    return date_obj.strftime("%Y/%m/%d")
+
+
 if __name__ == '__main__':
-    res = gen_ot_uuid_by_key('x', prefix='oil')
-    # res = gen_ot_uuid_random()
-    print(res)
+    pass
