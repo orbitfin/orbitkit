@@ -4,10 +4,8 @@ import tempfile
 import boto3
 import logging
 import time
-from orbitkit.util import ExtenCons
-from orbitkit.util.util_aws import s3_split_path
+from orbitkit.util import s3_split_path, S3Util, get_from_dict_or_env, ExtenCons
 from typing import Optional
-from orbitkit.util import get_from_dict_or_env
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +49,9 @@ class PdfTxtEmbedding:
             kwargs, "aws_secret_access_key", "AWS_SECRET_ACCESS_KEY",
         )
 
-        self.s3_resource = boto3.resource("s3", aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-        self.s3_client = boto3.client("s3", aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+        self.s3_util = S3Util(aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+        self.s3_resource = self.s3_util.get_s3_resource()
+        self.s3_client = self.s3_util.get_s3_client()
 
     def embed(self):
         if self.temp_folder:
@@ -119,10 +118,13 @@ class PdfTxtEmbedding:
                     f_pages_vector.write("\n")
                 embedding_cache = []  # 清空 embedding_cache
 
+        pages_txt_vector_key = os.path.join(self.txt_vector, s3_path_obj["store_path"], "pages.txt.vector")
         self.s3_client.upload_file(
-            os.path.join(input_folder, "pages.txt.vector"), s3_path_obj["bucket"], os.path.join(self.txt_vector, s3_path_obj["store_path"], "pages.txt.vector"),
+            os.path.join(input_folder, "pages.txt.vector"), s3_path_obj["bucket"], pages_txt_vector_key,
             ExtraArgs={"ContentType": ExtenCons.EXTEN_TEXT_TXT_UTF8.value}
         )
+        if self.s3_util.check_file_exist(s3_path_obj["bucket"], pages_txt_vector_key) is False:
+            raise Exception("[page] Store page result vector failed...")
         logger.warning("[page] Store page result vector successfully...")
 
         logger.info(f"pages.txt embedding time: {str((time.perf_counter() - start2) * 1000)}")
@@ -183,10 +185,13 @@ class PdfTxtEmbedding:
                     f_blocks_vector.write("\n")
                 page_data_cache = []  # 清空 embedding_cache
 
+        blocks_txt_vector_key = os.path.join(self.txt_vector, s3_path_obj["store_path"], "blocks.txt.vector")
         self.s3_client.upload_file(
-            os.path.join(input_folder, "blocks.txt.vector"), s3_path_obj["bucket"], os.path.join(self.txt_vector, s3_path_obj["store_path"], "blocks.txt.vector"),
+            os.path.join(input_folder, "blocks.txt.vector"), s3_path_obj["bucket"], blocks_txt_vector_key,
             ExtraArgs={"ContentType": ExtenCons.EXTEN_TEXT_TXT_UTF8.value}
         )
+        if self.s3_util.check_file_exist(s3_path_obj["bucket"], blocks_txt_vector_key) is False:
+            raise Exception("[block] Store block result vector failed...")
         logger.warning("[block] Store block result vector successfully...")
 
         logger.info(f"blocks.txt embedding time: {str((time.perf_counter() - start4) * 1000)}")

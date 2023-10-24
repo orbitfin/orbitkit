@@ -16,7 +16,9 @@ def extract_pdf_list_example(s3_list: List):
     for s3_path in s3_list:
         try:
             pdf_extractor = PdfExtractor(s3_path=s3_path,
-                                         txt_vector="")
+                                         txt_vector="",
+                                         aws_access_key_id="",
+                                         aws_secret_access_key="")
 
             pdf_extractor.extract()
         except TooManyPagesException as e:
@@ -39,5 +41,5 @@ def extract_pdf_from_s3(s3_path: str):
 
 
 if __name__ == "__main__":
-    # extract_pdf_from_s3(s3_path="example.pdf")
+    extract_pdf_from_s3(s3_path="s3://orbit-common-resources/pdf-test/202105310903058865590189.pdf")
     pass

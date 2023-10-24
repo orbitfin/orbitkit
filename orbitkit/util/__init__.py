@@ -23,6 +23,7 @@ from .util_type_mapping import (
 from .util_aws import (
     s3_split_path,
     s3_concat_path,
+    S3Util,
 )
 from .util_str import (
     is_empty_strip,

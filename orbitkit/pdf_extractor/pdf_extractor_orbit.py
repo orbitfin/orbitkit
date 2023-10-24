@@ -7,9 +7,7 @@ import logging
 import datetime
 import pytz
 from orbitkit import id_srv
-from orbitkit.util.util_aws import s3_split_path
-from orbitkit.util import get_from_dict_or_env
-from orbitkit.util import ExtenCons
+from orbitkit.util import s3_split_path, S3Util, get_from_dict_or_env, ExtenCons
 from orbitkit.pdf_extractor.pdf_block_extractor_v2 import PdfBlockExtractV2
 from orbitkit.pdf_extractor.exceptions import CidEncryptionException, OcrBrokenException, TooManyPagesException
 from typing import Optional
@@ -54,8 +52,9 @@ class PdfExtractor:
             kwargs, "aws_secret_access_key", "AWS_SECRET_ACCESS_KEY",
         )
 
-        self._s3_resource = boto3.resource('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-        self._s3_client = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+        self.s3_util = S3Util(aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+        self._s3_resource = self.s3_util.get_s3_resource()
+        self._s3_client = self.s3_util.get_s3_client()
 
     def extract(self):
         if self.temp_folder:
@@ -132,10 +131,11 @@ class PdfExtractor:
             raise CidEncryptionException()
         # Validation ------------------------------------------------------------------------------------
 
-        self._s3_client.upload_file(
-            os.path.join(input_folder, 'pages.txt'), s3_path_obj['bucket'], os.path.join(self.txt_vector, s3_path_obj['store_path'], 'pages.txt'),
-            ExtraArgs={'ContentType': ExtenCons.EXTEN_TEXT_TXT_UTF8.value}
-        )
+        pages_txt_key = os.path.join(self.txt_vector, s3_path_obj['store_path'], 'pages.txt')
+        self._s3_client.upload_file(os.path.join(input_folder, 'pages.txt'), s3_path_obj['bucket'], pages_txt_key,
+                                    ExtraArgs={'ContentType': ExtenCons.EXTEN_TEXT_TXT_UTF8.value})
+        if self.s3_util.check_file_exist(s3_path_obj["bucket"], pages_txt_key) is False:
+            raise Exception("[page] Store page result failed...")
         logger.info("[page] Store page result successfully...")
 
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 提取文本 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -162,10 +162,11 @@ class PdfExtractor:
                 except StopIteration:
                     break
 
-        self._s3_client.upload_file(
-            os.path.join(input_folder, 'blocks.txt'), s3_path_obj['bucket'], os.path.join(self.txt_vector, s3_path_obj['store_path'], 'blocks.txt'),
-            ExtraArgs={'ContentType': ExtenCons.EXTEN_TEXT_TXT_UTF8.value}
-        )
+        blocks_txt_key = os.path.join(self.txt_vector, s3_path_obj['store_path'], 'blocks.txt')
+        self._s3_client.upload_file(os.path.join(input_folder, 'blocks.txt'), s3_path_obj['bucket'], blocks_txt_key,
+                                    ExtraArgs={'ContentType': ExtenCons.EXTEN_TEXT_TXT_UTF8.value})
+        if self.s3_util.check_file_exist(s3_path_obj["bucket"], blocks_txt_key) is False:
+            raise Exception("[block] Store block result failed...")
         logger.info("[block] Store block result successfully...")
 
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 存储 metadata >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
