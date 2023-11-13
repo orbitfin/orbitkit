@@ -30,3 +30,7 @@ from .util_str import (
     is_empty,
     get_value,
 )
+from .util_md5 import (
+    get_md5_by_file,
+    get_md5_by_str,
+)
