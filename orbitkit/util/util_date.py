@@ -1,37 +1,78 @@
 import datetime
 import json
+from enum import Enum
+from typing import List, Optional
+
+
+class DateTimeFormat(Enum):
+    '''Orbit date format
+    '''
+
+    DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
+    DATE_FORMAT = "%Y-%m-%d"
 
 
 class DateEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
-            return obj.strftime('%Y-%m-%dT%H:%M:%S%z')
+            return obj.strftime(DateTimeFormat.DATETIME_FORMAT.value)
         elif isinstance(obj, datetime.date):
-            return obj.strftime("%Y-%m-%d")
+            return obj.strftime(DateTimeFormat.DATE_FORMAT.value)
         else:
             return json.JSONEncoder.default(self, obj)
 
 
-def get_date_range_list_v1(start_date, end_date):
+def get_date_range_by_base(date_range: int,
+                           base_date: Optional[datetime.datetime] = None,
+                           direction: str = "backward",
+                           formatter: str = "%Y-%m-%d") -> List:
+    """
+    Get date range by datetime.
+    :param date_range:
+    :param base_date:
+    :param direction:
+    :param formatter:
+    :return: A list of date range.
+    """
+    if date_range <= 0:
+        raise Exception("Param err")
+
+    if base_date is None:
+        base_date = datetime.datetime.now()
+
+    timedelta = datetime.timedelta(days=date_range - 1)
+    if direction == "backward":
+        start_date = base_date - timedelta
+        end_date = base_date
+    elif direction == "forward":
+        start_date = base_date
+        end_date = base_date + timedelta
+    else:
+        raise Exception("Param err")
+
+    return get_date_range_list_v2(start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"), post_formatter=formatter)
+
+
+def get_date_range_list_v1(start_date, end_date) -> List:
     """
     This method will return a list in which all date range are included with the very start and ending.
     :param start_date: '2019-06-03'
     :param end_date: '2019-06-05'
     :return:
     """
-    datestart = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-    dateend = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+    datestart = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+    dateend = datetime.datetime.strptime(end_date, "%Y-%m-%d")
     dateend += datetime.timedelta(days=1)
 
     day_list_with_range = []
     while datestart < dateend:
-        day_list_with_range.append(datestart.strftime('%Y-%m-%d'))
+        day_list_with_range.append(datestart.strftime("%Y-%m-%d"))
         datestart += datetime.timedelta(days=1)
 
     return day_list_with_range
 
 
-def get_date_range_list_v2(start_date, end_date, pre_formatter='%Y-%m-%d', post_formatter='%Y-%m-%d'):
+def get_date_range_list_v2(start_date, end_date, pre_formatter="%Y-%m-%d", post_formatter="%Y-%m-%d") -> List:
     """
     This method will return a list in which all date range are included with the very start and ending.
     :param post_formatter: Default is %Y-%m-%d
