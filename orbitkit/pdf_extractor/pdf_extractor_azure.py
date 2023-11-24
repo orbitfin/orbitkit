@@ -1,7 +1,6 @@
 import json
 import os
 import tempfile
-import boto3
 import datetime
 import pytz
 import logging

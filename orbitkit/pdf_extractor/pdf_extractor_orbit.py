@@ -1,7 +1,6 @@
 import json
 import os
 import tempfile
-import boto3
 import pdfplumber
 import logging
 import datetime
@@ -29,12 +28,16 @@ logger = logging.getLogger(__name__)
 
 
 class PdfExtractor:
+    issue_token_cid = ")(cid:"
+    issue_token_cid_mark_count = 20
+
     def __init__(self,
                  s3_path: str,
-                 version: str = 'ov2',
+                 version: str = "ov2",
                  stop_page: int = 400,
-                 txt_vector: str = 'txt-vector',
+                 txt_vector: str = "txt-vector",
                  temp_folder: Optional[str] = None,
+                 page_and_block: str = "both",
                  *args, **kwargs):
 
         self.version = version
@@ -42,6 +45,10 @@ class PdfExtractor:
         self.stop_page = stop_page
         self.txt_vector = txt_vector
         self.temp_folder = temp_folder
+        self.page_and_block = page_and_block
+
+        if self.page_and_block not in ["both", "page", "block"]:
+            raise Exception("Param exception.")
 
         # Try to get key aws pair
         aws_access_key_id = get_from_dict_or_env(
@@ -78,11 +85,8 @@ class PdfExtractor:
         self._s3_resource.Bucket(s3_path_obj['bucket']).download_file(s3_path_obj['store_path'], file_local_path_in)
         logger.info('Download file successfully...')
 
-        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  按页面提取文本 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  按页面提取文本 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  按页面提取文本 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         '''Validation
-        如果 pdf 页面超过 400 页，则先不提取
+        如果 pdf 页面超过"指定"页数，则先不提取
         '''
         with pdfplumber.open(file_local_path_in) as pdf_p_judge:
             # 先得到总页数
@@ -90,9 +94,25 @@ class PdfExtractor:
             if len(total_page_pages) > self.stop_page:
                 raise TooManyPagesException()
 
-        # >>>>>>>>>>>>>>>>>>>>>>>>>> 开始页面文本提取
+        page_ex = block_ex = True
+        if self.page_and_block == "page":
+            block_ex = False
+        if self.page_and_block == "block":
+            page_ex = False
+
+        # 按页面提取文本
+        if page_ex:
+            self.extract_detail_page(total_page_pages, file_local_path_in, input_folder, s3_path_obj)
+
+        # 提取文本
+        if block_ex:
+            self.extract_detail_block(file_local_path_in, input_folder, s3_path_obj)
+
+        # 存储 metadata
+        self.extract_detail_metadata(s3_path_obj)
+
+    def extract_detail_page(self, total_page_pages, file_local_path_in, input_folder, s3_path_obj):
         issue_token_cid_mark = 0
-        issue_token_cid = ')(cid:'
         validated_page_arr = []
 
         with open(os.path.join(input_folder, 'pages.txt'), 'w+', encoding='utf-8') as f_pages:
@@ -112,13 +132,13 @@ class PdfExtractor:
 
                     f_pages.write(json.dumps(page_item, ensure_ascii=False))
                     f_pages.write('\n')
-                    validated_page_arr.append(1)  # 只是用来记述，没有别的意义
+                    validated_page_arr.append(1)  # 只是用来记述，没有别的意义，说明有提取成功的数据
 
                     # cid calculation
-                    if issue_token_cid in page_item['sentence']:
-                        issue_token_cid_mark += str(page_item['sentence']).count(issue_token_cid)
+                    if PdfExtractor.issue_token_cid in page_item['sentence']:
+                        issue_token_cid_mark += str(page_item['sentence']).count(PdfExtractor.issue_token_cid)
 
-                        if issue_token_cid_mark > 20:
+                        if issue_token_cid_mark > PdfExtractor.issue_token_cid_mark_count:
                             raise CidEncryptionException()
 
         # Validation ------------------------------------------------------------------------------------
@@ -127,7 +147,7 @@ class PdfExtractor:
         '''
         if len(validated_page_arr) <= 0:
             raise OcrBrokenException()
-        if issue_token_cid_mark > 20:
+        if issue_token_cid_mark > PdfExtractor.issue_token_cid_mark_count:
             raise CidEncryptionException()
         # Validation ------------------------------------------------------------------------------------
 
@@ -138,9 +158,10 @@ class PdfExtractor:
             raise Exception("[page] Store page result failed...")
         logger.info("[page] Store page result successfully...")
 
-        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 提取文本 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 提取文本 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 提取文本 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    def extract_detail_block(self, file_local_path_in, input_folder, s3_path_obj):
+        issue_token_cid_mark = 0
+        validated_page_arr = []
+
         pdf_block_extract = PdfBlockExtractV2(local_path=file_local_path_in, extend_meta={})
         pdf_block_extract_gen = pdf_block_extract.extract_iter()
         with open(os.path.join(input_folder, 'blocks.txt'), 'w+', encoding='utf-8') as f_blocks:
@@ -157,10 +178,31 @@ class PdfExtractor:
                             'text_location': _text_block['text_location'],
                         }
 
+                        if text_block_obj['sentence'] == '':
+                            continue
+
                         f_blocks.write(json.dumps(text_block_obj, ensure_ascii=False))
                         f_blocks.write('\n')
+                        validated_page_arr.append(1)  # 只是用来记述，没有别的意义，说明有提取成功的数据
+
+                        # cid calculation
+                        if PdfExtractor.issue_token_cid in text_block_obj['sentence']:
+                            issue_token_cid_mark += str(text_block_obj['sentence']).count(PdfExtractor.issue_token_cid)
+
+                            if issue_token_cid_mark > PdfExtractor.issue_token_cid_mark_count / 2:
+                                raise CidEncryptionException()
                 except StopIteration:
                     break
+
+        # Validation ------------------------------------------------------------------------------------
+        '''Validation
+        如果验证不通过，则说明 pdf 提取的问题是有问题的，没必要继续进行提取
+        '''
+        if len(validated_page_arr) <= 0:
+            raise OcrBrokenException()
+        if issue_token_cid_mark > PdfExtractor.issue_token_cid_mark_count:
+            raise CidEncryptionException()
+        # Validation ------------------------------------------------------------------------------------
 
         blocks_txt_key = os.path.join(self.txt_vector, s3_path_obj['store_path'], 'blocks.txt')
         self._s3_client.upload_file(os.path.join(input_folder, 'blocks.txt'), s3_path_obj['bucket'], blocks_txt_key,
@@ -169,6 +211,7 @@ class PdfExtractor:
             raise Exception("[block] Store block result failed...")
         logger.info("[block] Store block result successfully...")
 
+    def extract_detail_metadata(self, s3_path_obj):
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 存储 metadata >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 存储 metadata >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 存储 metadata >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
