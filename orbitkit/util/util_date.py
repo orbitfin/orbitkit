@@ -3,6 +3,8 @@ import json
 from enum import Enum
 from typing import List, Optional
 
+import pytz
+
 
 class DateTimeFormat(Enum):
     '''Orbit date format
@@ -20,6 +22,15 @@ class DateEncoder(json.JSONEncoder):
             return obj.strftime(DateTimeFormat.DATE_FORMAT.value)
         else:
             return json.JSONEncoder.default(self, obj)
+
+
+def get_orbit_std_datatime():
+    current_timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+    return datetime.datetime.now(tz=current_timezone).strftime(DateTimeFormat.DATETIME_FORMAT.value)
+
+
+def get_orbit_std_datatime_utc():
+    return datetime.datetime.now(tz=pytz.timezone('UTC')).strftime(DateTimeFormat.DATETIME_FORMAT.value)
 
 
 def get_date_range_by_base(date_range: int,
