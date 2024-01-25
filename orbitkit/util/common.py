@@ -3,6 +3,7 @@ import re
 import os
 import uuid
 from typing import Any, Dict, Optional
+from deprecated.sphinx import deprecated
 
 
 def gen_ot_uuid_random():
@@ -32,6 +33,7 @@ def get_orbit_uuid_v1(word):
     return str(uuid.uuid3(uuid.NAMESPACE_DNS, str(word)))
 
 
+@deprecated(version="v1", reason="remove_all_tags_v1 is deprecated.")
 def remove_all_tags_v1(tag_str, substitution=''):
     """
     :param tag_str:

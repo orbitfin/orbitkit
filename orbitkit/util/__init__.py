@@ -37,3 +37,6 @@ from .util_md5 import (
     get_md5_by_file,
     get_md5_by_str,
 )
+from .util_html import (
+    remove_all_tags,
+)

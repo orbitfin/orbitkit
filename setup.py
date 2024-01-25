@@ -41,5 +41,6 @@ setup(
         "requests >= 2.12.1",
         "prettytable >= 3.0.0",
         "pytz >= 2022.1",
+        "Deprecated",
     ]
 )
