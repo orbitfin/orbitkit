@@ -1,10 +1,9 @@
 import json
 import os
 import tempfile
-import boto3
 import logging
 import time
-from orbitkit.util import s3_split_path, S3Util, get_from_dict_or_env, ExtenCons
+from orbitkit.util import s3_split_path, S3Util, get_from_dict_or_env, ExtenCons, s3_path_join
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -74,7 +73,7 @@ class PdfTxtEmbedding:
 
         # 下载 pages.txt 文件到 input folder
         file_local_path_in = os.path.join(input_folder, "pages.txt")
-        self.s3_resource.Bucket(s3_path_obj["bucket"]).download_file(os.path.join(self.txt_vector, s3_path_obj["store_path"], "pages.txt"), file_local_path_in)
+        self.s3_resource.Bucket(s3_path_obj["bucket"]).download_file(s3_path_join(self.txt_vector, s3_path_obj["store_path"], "pages.txt"), file_local_path_in)
         logger.warning("Download pages.txt successfully...")
 
         logger.info(f"pages.txt download time: {str((time.perf_counter() - start1) * 1000)}")
@@ -84,7 +83,11 @@ class PdfTxtEmbedding:
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  按页面 embedding >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         start2 = time.perf_counter()
 
-        with open(os.path.join(input_folder, "pages.txt"), "r+") as f_pages, open(os.path.join(input_folder, "pages.txt.vector"), "w+") as f_pages_vector:
+        with open(
+                os.path.join(input_folder, "pages.txt"), "r+", encoding='utf-8'
+        ) as f_pages, open(
+            os.path.join(input_folder, "pages.txt.vector"), "w+", encoding='utf-8'
+        ) as f_pages_vector:
             embedding_cache = []
             for line in f_pages:
                 if line.strip() == "":
@@ -118,7 +121,7 @@ class PdfTxtEmbedding:
                     f_pages_vector.write("\n")
                 embedding_cache = []  # 清空 embedding_cache
 
-        pages_txt_vector_key = os.path.join(self.txt_vector, s3_path_obj["store_path"], "pages.txt.vector")
+        pages_txt_vector_key = s3_path_join(self.txt_vector, s3_path_obj["store_path"], "pages.txt.vector")
         self.s3_client.upload_file(
             os.path.join(input_folder, "pages.txt.vector"), s3_path_obj["bucket"], pages_txt_vector_key,
             ExtraArgs={"ContentType": ExtenCons.EXTEN_TEXT_TXT_UTF8.value}
@@ -136,14 +139,18 @@ class PdfTxtEmbedding:
 
         # 下载 blocks.txt 文件到 input folder
         file_local_path_in = os.path.join(input_folder, "blocks.txt")
-        self.s3_resource.Bucket(s3_path_obj["bucket"]).download_file(os.path.join(self.txt_vector, s3_path_obj["store_path"], "blocks.txt"), file_local_path_in)
+        self.s3_resource.Bucket(s3_path_obj["bucket"]).download_file(s3_path_join(self.txt_vector, s3_path_obj["store_path"], "blocks.txt"), file_local_path_in)
         logger.warning("Download blocks.txt successfully...")
 
         logger.info(f"blocks.txt download time: {str((time.perf_counter() - start3) * 1000)}")
 
         start4 = time.perf_counter()
 
-        with open(os.path.join(input_folder, "blocks.txt"), "r+") as f_blocks, open(os.path.join(input_folder, "blocks.txt.vector"), "w+") as f_blocks_vector:
+        with open(
+                os.path.join(input_folder, "blocks.txt"), "r+", encoding='utf-8'
+        ) as f_blocks, open(
+            os.path.join(input_folder, "blocks.txt.vector"), "w+", encoding='utf-8'
+        ) as f_blocks_vector:
             page_data_cache = []
             for line in f_blocks:
                 if line.strip() == "":
@@ -185,7 +192,7 @@ class PdfTxtEmbedding:
                     f_blocks_vector.write("\n")
                 page_data_cache = []  # 清空 embedding_cache
 
-        blocks_txt_vector_key = os.path.join(self.txt_vector, s3_path_obj["store_path"], "blocks.txt.vector")
+        blocks_txt_vector_key = s3_path_join(self.txt_vector, s3_path_obj["store_path"], "blocks.txt.vector")
         self.s3_client.upload_file(
             os.path.join(input_folder, "blocks.txt.vector"), s3_path_obj["bucket"], blocks_txt_vector_key,
             ExtraArgs={"ContentType": ExtenCons.EXTEN_TEXT_TXT_UTF8.value}

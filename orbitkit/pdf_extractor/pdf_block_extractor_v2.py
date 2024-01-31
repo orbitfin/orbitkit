@@ -13,7 +13,7 @@ try:
 except ImportError:
     raise ValueError(
         "Please install below packages before using PDF Extractor function.\n"
-        "- pdfminer\n"
+        "- pdfminer.six\n"
         "- pdfplumber >= 0.9.0\n"
         "- pycryptodome >= 3.11.0"
     )

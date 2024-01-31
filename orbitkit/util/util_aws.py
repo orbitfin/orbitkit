@@ -22,6 +22,15 @@ def s3_concat_path(bucket: str, store_path: str):
     return os.path.join('s3://', bucket, store_path)
 
 
+def s3_path_join(*paths):
+    """Always connect path with /."""
+    if len(paths) <= 0:
+        raise ValueError("At least one path needed!")
+
+    paths_clean = [str(path).strip("/") for path in paths if str(path).strip() != ""]
+    return "/".join(paths_clean)
+
+
 class S3Util:
     def __init__(self, *args, **kwargs):
         # Try to get key aws pair

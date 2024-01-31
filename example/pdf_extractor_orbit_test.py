@@ -40,8 +40,5 @@ if __name__ == "__main__":
     # Test list
     s3_path_list = []
     extract_pdf_list_example(s3_list=s3_path_list)
-
     # Test one
-    # extract_pdf_one_example(s3_path="s3://orbit-common-resources/pdf-test/202105310903058865590189.pdf")
-
-    pass
+    extract_pdf_one_example(s3_path="s3://orbit-common-resources/pdf-test/202105310903058865590189.pdf")

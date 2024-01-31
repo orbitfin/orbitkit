@@ -6,7 +6,7 @@ import logging
 import datetime
 import pytz
 from orbitkit import id_srv
-from orbitkit.util import s3_split_path, S3Util, get_from_dict_or_env, ExtenCons
+from orbitkit.util import s3_split_path, S3Util, get_from_dict_or_env, ExtenCons, s3_path_join
 from orbitkit.pdf_extractor.pdf_block_extractor_v2 import PdfBlockExtractV2
 from orbitkit.pdf_extractor.exceptions import CidEncryptionException, OcrBrokenException, TooManyPagesException
 from typing import Optional
@@ -151,7 +151,7 @@ class PdfExtractor:
             raise CidEncryptionException()
         # Validation ------------------------------------------------------------------------------------
 
-        pages_txt_key = os.path.join(self.txt_vector, s3_path_obj['store_path'], 'pages.txt')
+        pages_txt_key = s3_path_join(self.txt_vector, s3_path_obj['store_path'], 'pages.txt')
         self._s3_client.upload_file(os.path.join(input_folder, 'pages.txt'), s3_path_obj['bucket'], pages_txt_key,
                                     ExtraArgs={'ContentType': ExtenCons.EXTEN_TEXT_TXT_UTF8.value})
         if self.s3_util.check_file_exist(s3_path_obj["bucket"], pages_txt_key) is False:
@@ -204,7 +204,7 @@ class PdfExtractor:
             raise CidEncryptionException()
         # Validation ------------------------------------------------------------------------------------
 
-        blocks_txt_key = os.path.join(self.txt_vector, s3_path_obj['store_path'], 'blocks.txt')
+        blocks_txt_key = s3_path_join(self.txt_vector, s3_path_obj['store_path'], 'blocks.txt')
         self._s3_client.upload_file(os.path.join(input_folder, 'blocks.txt'), s3_path_obj['bucket'], blocks_txt_key,
                                     ExtraArgs={'ContentType': ExtenCons.EXTEN_TEXT_TXT_UTF8.value})
         if self.s3_util.check_file_exist(s3_path_obj["bucket"], blocks_txt_key) is False:
@@ -225,6 +225,6 @@ class PdfExtractor:
             "others": {}
         }
 
-        object_put = self._s3_resource.Object(s3_path_obj['bucket'], os.path.join(self.txt_vector, s3_path_obj['store_path'], 'metadata.txt'))
+        object_put = self._s3_resource.Object(s3_path_obj['bucket'], s3_path_join(self.txt_vector, s3_path_obj['store_path'], 'metadata.txt'))
         object_put.put(Body=json.dumps(extract_meta, ensure_ascii=False), ContentType=ExtenCons.EXTEN_TEXT_TXT_UTF8.value)
         logger.info("[meta] Store extract meta info successfully...")

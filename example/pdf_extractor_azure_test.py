@@ -13,7 +13,6 @@ logging.basicConfig(level=logging.INFO)
 def extract_pdf_from_s3(s3_path: str):
     pdf_extractor = PdfExtractorAzure(s3_path=s3_path,
                                       txt_vector="",
-                                      # temp_folder=dirname(abspath(__file__)),
                                       aws_access_key_id="",
                                       aws_secret_access_key="",
                                       azure_doc_intelligence_endpoint="",
@@ -29,4 +28,3 @@ if __name__ == "__main__":
 
     for item in extract_list:
         extract_pdf_from_s3(s3_path=item)
-    pass
