@@ -41,3 +41,6 @@ from .util_md5 import (
 from .util_html import (
     remove_all_tags,
 )
+from .util_aws_s3_wrapper import (
+    AwsS3Wrapper
+)
