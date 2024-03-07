@@ -3,6 +3,7 @@ from enum import Enum
 
 '''
 Reference link: https://www.lifewire.com/file-extensions-and-mime-types-3469109
+Reference link: https://superuser.com/questions/62852/xlsx-files-are-being-interpreted-as-zip-files-on-download-why
 # Applications
 doc / docx / ppt / pptx / xls / xlsx / pdf / json / js
 # Text Files
@@ -30,6 +31,7 @@ class ExtenCons(Enum):
     EXTEN_TEXT_HTML = 'text/html'
     EXTEN_TEXT_HTM = 'text/html'
     EXTEN_TEXT_TXT = 'text/plain'
+    # Text Files with charset
     EXTEN_TEXT_HTML_UTF8 = 'text/html;charset=utf-8'
     EXTEN_TEXT_HTM_UTF8 = 'text/html;charset=utf-8'
     EXTEN_TEXT_TXT_UTF8 = 'text/plain;charset=utf-8'
@@ -41,14 +43,17 @@ _content_file_mapping = {
     'pdf': {'application': 'pdf document', 'mine': 'application/pdf'},
     'json': {'application': 'json document', 'mine': 'application/json'},
     'evy': {'application': 'Corel Envoy', 'mine': 'application/envoy'},
+    # Word related
+    'dot': {'application': 'Word document template', 'mine': 'application/msword'},
     'doc': {'application': 'Word document', 'mine': 'application/msword'},
     'docx': {'application': 'docx document', 'mine': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'},
+    'docm': {'application': '', 'mine': 'application/vnd.ms-word.document.macroEnabled.12'},  # Added in 07 Mar, 2024
+    'dotx': {'application': '', 'mine': 'application/vnd.openxmlformats-officedocument.wordprocessingml.template'},  # Added in 07 Mar, 2024
     'fif': {'application': 'fractal image file', 'mine': 'application/fractals'},
     'spl': {'application': 'Windows print spool file', 'mine': 'application/futuresplash'},
     'hta': {'application': 'HTML application', 'mine': 'application/hta'},
     'acx': {'application': 'Atari ST Program', 'mine': 'application/internet-property-stream'},
     'hqx': {'application': 'BinHex encoded file', 'mine': 'application/mac-binhex40'},
-    'dot': {'application': 'Word document template', 'mine': 'application/msword'},
     'bin': {'application': 'binary disk image', 'mine': 'application/octet-stream'},
     'class': {'application': 'Java class file', 'mine': 'application/octet-stream'},
     'dms': {'application': 'Disk Masher image', 'mine': 'application/octet-stream'},
@@ -66,6 +71,7 @@ _content_file_mapping = {
     'rtf': {'application': 'rich text format file', 'mine': 'application/rtf'},
     'setpay': {'application': 'set payment initiation', 'mine': 'application/set-payment-initiation'},
     'setreg': {'application': 'set registration initiation', 'mine': 'application/set-registration-initiation'},
+    # Excel related
     'xla': {'application': 'Excel Add-in file', 'mine': 'application/vnd.ms-excel'},
     'xlc': {'application': 'Excel chart', 'mine': 'application/vnd.ms-excel'},
     'xlm': {'application': 'Excel macro', 'mine': 'application/vnd.ms-excel'},
@@ -73,14 +79,26 @@ _content_file_mapping = {
     'xlsx': {'application': 'xlsx document', 'mine': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'},
     'xlt': {'application': 'Excel template', 'mine': 'application/vnd.ms-excel'},
     'xlw': {'application': 'Excel worspace', 'mine': 'application/vnd.ms-excel'},
+    'xlam': {'application': '', 'mine': 'application/vnd.ms-excel.addin.macroEnabled.12'},  # Added in 07 Mar, 2024
+    'xlsb': {'application': '', 'mine': 'application/vnd.ms-excel.sheet.binary.macroEnabled.12'},  # Added in 07 Mar, 2024
+    'xlsm': {'application': '', 'mine': 'application/vnd.ms-excel.sheet.macroEnabled.12'},  # Added in 07 Mar, 2024
+    'xltm': {'application': '', 'mine': 'application/vnd.ms-excel.template.macroEnabled.12'},  # Added in 07 Mar, 2024
+    'xltx': {'application': '', 'mine': 'application/vnd.openxmlformats-officedocument.spreadsheetml.template'},  # Added in 07 Mar, 2024
     'msg': {'application': 'Outlook mail message', 'mine': 'application/vnd.ms-outlook'},
     'sst': {'application': 'serialized certificate store file', 'mine': 'application/vnd.ms-pkicertstore'},
     'cat': {'application': 'Windows catalog file', 'mine': 'application/vnd.ms-pkiseccat'},
     'stl': {'application': 'stereolithography file', 'mine': 'application/vnd.ms-pkistl'},
+    # ppt related
     'pot': {'application': 'PowerPoint template', 'mine': 'application/vnd.ms-powerpoint'},
     'pps': {'application': 'PowerPoint slide show', 'mine': 'application/vnd.ms-powerpoint'},
     'ppt': {'application': 'PowerPoint presentation', 'mine': 'application/vnd.ms-powerpoint'},
     'pptx': {'application': 'pptx document', 'mine': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'},
+    'potm': {'application': '', 'mine': 'application/vnd.ms-powerpoint.template.macroEnabled.12'},  # Added in 07 Mar, 2024
+    'potx': {'application': '', 'mine': 'application/vnd.openxmlformats-officedocument.presentationml.template'},  # Added in 07 Mar, 2024
+    'ppam': {'application': '', 'mine': 'application/vnd.ms-powerpoint.addin.macroEnabled.12'},  # Added in 07 Mar, 2024
+    'ppsm': {'application': '', 'mine': 'application/vnd.ms-powerpoint.slideshow.macroEnabled.12'},  # Added in 07 Mar, 2024
+    'ppsx': {'application': '', 'mine': 'application/vnd.openxmlformats-officedocument.presentationml.slideshow'},  # Added in 07 Mar, 2024
+    'pptm': {'application': '', 'mine': 'application/vnd.ms-powerpoint.presentation.macroEnabled.12'},  # Added in 07 Mar, 2024
     'mpp': {'application': 'Microsoft Project file', 'mine': 'application/vnd.ms-project'},
     'wcm': {'application': 'WordPerfect macro', 'mine': 'application/vnd.ms-works'},
     'wdb': {'application': 'Microsoft Works database', 'mine': 'application/vnd.ms-works'},
@@ -156,6 +174,7 @@ _content_file_mapping = {
     'der': {'application': 'DER certificate file', 'mine': 'application/x-x509-ca-cert'},
     'pko': {'application': 'public key security object', 'mine': 'application/ynd.ms-pkipko'},
     'zip': {'application': 'zipped file', 'mine': 'application/zip'},
+    'xhtml': {'application': '', 'mine': 'application/xhtml+xml'},  # Added in 07 Mar, 2024
     # MIME Types: Sound Files
     'au': {'application': 'audio file', 'mine': 'audio/basic'},
     'snd': {'application': 'sound file', 'mine': 'audio/basic'},
@@ -234,6 +253,7 @@ _content_file_mapping = {
     'htc': {'application': 'HTML component file', 'mine': 'text/x-component'},
     'etx': {'application': 'TeX font encoding file', 'mine': 'text/x-setext'},
     'vcf': {'application': 'vCard file', 'mine': 'text/x-vcard'},
+    'csv': {'application': '', 'mine': 'text/csv'},  # Added in 07 Mar, 2024
     # MIME Types: Mail Message Files
     'mht': {'application': 'MHTML web archive', 'mine': 'message/rfc822'},
     'mhtml': {'application': 'MIME HTML file', 'mine': 'message/rfc822'},
