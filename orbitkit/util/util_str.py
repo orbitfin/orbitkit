@@ -28,3 +28,12 @@ def get_value(item: Dict, key: str):
     if item[key] is None:
         return ""
     return item[key]
+
+
+def log_id(request_id: str, message: str):
+    """
+    :param request_id: The request_id to use
+    :param message: Real message
+    :return:
+    """
+    return f"[{request_id}]{message}"

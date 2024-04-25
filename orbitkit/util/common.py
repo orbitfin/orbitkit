@@ -83,7 +83,3 @@ def date_2_path(date_str: str) -> str:
         raise Exception("Wrong date format, should be in %Y-%m-%d format.")
 
     return date_obj.strftime("%Y/%m/%d")
-
-
-if __name__ == '__main__':
-    pass
