@@ -19,6 +19,7 @@ class ExtenCons(Enum):
     EXTEN_OCTET_STREAM = 'application/octet-stream'
     # Application
     EXTEN_APPLI_PDF = 'application/pdf'
+    EXTEN_APPLI_XML = 'application/xml'
     EXTEN_APPLI_JSON = 'application/json'
     EXTEN_APPLI_JS = 'application/x-javascript'
     EXTEN_APPLI_DOC = 'application/msword'
@@ -43,6 +44,7 @@ _content_file_mapping = {
     'pdf': {'application': 'pdf document', 'mine': 'application/pdf'},
     'json': {'application': 'json document', 'mine': 'application/json'},
     'evy': {'application': 'Corel Envoy', 'mine': 'application/envoy'},
+    'xml': {'application': 'XML document', 'mine': 'application/xml'},
     # Word related
     'dot': {'application': 'Word document template', 'mine': 'application/msword'},
     'doc': {'application': 'Word document', 'mine': 'application/msword'},
