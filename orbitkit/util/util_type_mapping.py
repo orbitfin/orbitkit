@@ -191,6 +191,7 @@ _content_file_mapping = {
     'ram': {'application': 'Real Audio metadata file', 'mine': 'audio/x-pn-realaudio'},
     'wav': {'application': 'WAVE audio file', 'mine': 'audio/x-wav'},
     # MIME Types: Image Files
+    '.png': {'application': 'png', 'mine': 'image/png'},
     'bmp': {'application': 'Bitmap', 'mine': 'image/bmp'},
     'cod': {'application': 'compiled source code', 'mine': 'image/cis-cod'},
     'gif': {'application': 'graphic interchange format', 'mine': 'image/gif'},
