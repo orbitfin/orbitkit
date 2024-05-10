@@ -1,0 +1,2 @@
+class AwsCloudObjectProviderException(Exception):
+    pass
