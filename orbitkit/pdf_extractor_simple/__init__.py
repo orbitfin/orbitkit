@@ -2,8 +2,8 @@ import os
 import shutil
 import tempfile
 from typing import List, Optional
-from pdf_extractor_simple.base import CloudObjectProvider, PdfExtractor
-from pdf_extractor_simple.cloud_provider import AwsCloudObjectProvider, OssCloudObjectProvider
+from orbitkit.pdf_extractor_simple.base import CloudObjectProvider, PdfExtractor
+from orbitkit.pdf_extractor_simple.cloud_provider import AwsCloudObjectProvider, OssCloudObjectProvider
 
 
 class ExtractPdfSimpleTxtByCloud:

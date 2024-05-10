@@ -1,7 +1,7 @@
 import os
 import logging
 from orbitkit.util import s3_split_path, get_from_dict_or_env, get_content_type_4_filename, oss_split_path
-from pdf_extractor_simple.base import CloudObjectProvider
+from orbitkit.pdf_extractor_simple.base import CloudObjectProvider
 
 logger = logging.getLogger(__name__)
 

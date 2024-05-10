@@ -1,7 +1,7 @@
 import logging
 import json
-from pdf_extractor_simple.base import PdfExtractor
-from pdf_extractor_simple.utils import is_no_mess_code
+from orbitkit.pdf_extractor_simple.base import PdfExtractor
+from orbitkit.pdf_extractor_simple.utils import is_no_mess_code
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
