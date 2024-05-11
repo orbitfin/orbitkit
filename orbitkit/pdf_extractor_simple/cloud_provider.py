@@ -1,5 +1,6 @@
 import os
 import logging
+import threading
 from orbitkit.util import s3_split_path, get_from_dict_or_env, get_content_type_4_filename, oss_split_path
 from orbitkit.pdf_extractor_simple.base import CloudObjectProvider
 
@@ -18,7 +19,22 @@ except ImportError:
     )
 
 
+def singleton(cls):
+    instances = {}
+    lock = threading.Lock()
+
+    def get_instance(*args, **kwargs):
+        with lock:
+            if cls not in instances:
+                instances[cls] = cls(*args, **kwargs)
+            return instances[cls]
+
+    return get_instance
+
+
+@singleton
 class AwsCloudObjectProvider(CloudObjectProvider):
+
     def __init__(self, *args, **kwargs):
         aws_access_key_id = get_from_dict_or_env(
             kwargs, "aws_access_key_id", "AWS_ACCESS_KEY_ID",
@@ -66,18 +82,19 @@ class AwsCloudObjectProvider(CloudObjectProvider):
                                    ExtraArgs={'ContentType': content_type})
 
 
+@singleton
 class OssCloudObjectProvider(CloudObjectProvider):
     def __init__(self, *args, **kwargs):
         oss_app_id = get_from_dict_or_env(
-            kwargs, "oss_app_id", "OSSAPPID",
+            kwargs, "ossappid", "OSSAPPID",
         )
 
         oss_pwd = get_from_dict_or_env(
-            kwargs, "oss_pwd", "OSSPWD",
+            kwargs, "osspwd", "OSSPWD",
         )
 
         self.oss_endpoint = get_from_dict_or_env(
-            kwargs, "oss_endpoint", "OSSENDPOINT",
+            kwargs, "ossendpoint", "OSSENDPOINT",
         )
 
         self.auth = oss2.Auth(oss_app_id, oss_pwd)
