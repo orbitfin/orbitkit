@@ -36,7 +36,4 @@ def push_oss(bucket, local_path, oos_path):
 
 
 def down_oss(bucket, local_path, oos_path):
-    result = bucket.get_object_to_file(oos_path, local_path)
-    if result.status == 200:
-        return oos_path
-    return None
+    bucket.get_object_to_file(oos_path, local_path)
