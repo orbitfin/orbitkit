@@ -34,9 +34,11 @@ class CorePdfExtract:
                     return_txt_list: bool = False) -> Optional[list]:
 
         # Supply cloud_path & cloud_txt_path
+        self.cloud_path = cloud_path
         if cloud_txt_path is None:
             self.cloud_txt_path = cloud_path + ".txt"
-        self.cloud_path = cloud_path
+        else:
+            self.cloud_txt_path = cloud_txt_path
 
         # Select CloudObjectProvider by protocol
         self._setup_cloud_object_provider(cloud_path)
@@ -71,13 +73,13 @@ class CorePdfExtract:
 
             # export copy path
             if copy_path:
-                shutil.move(final_txt_path, copy_path)
+                shutil.copy(final_txt_path, copy_path)
 
             # Return list
             txt_content_list = None
             if return_txt_list:
                 txt_content_list = []
-                with open(final_txt_path) as ft:
+                with open(final_txt_path, encoding="utf-8") as ft:
                     for line in ft.readlines():
                         txt_content_list.append(line)
                     return txt_content_list
