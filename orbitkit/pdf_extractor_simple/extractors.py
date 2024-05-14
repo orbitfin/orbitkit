@@ -103,24 +103,25 @@ class MixedPdfPdfExtractor(PdfExtractor):
             with open(local_path_pdf, 'rb') as pdf_file, open(self.local_path_pdf_txt, "w+", encoding="utf-8") as pdf_file_txt:
                 pdf_reader = pypdf.PdfReader(pdf_file)
                 for index, page_obj in enumerate(pdf_reader.pages, start=1):
+                    logger.warning(f"page: {str(index)} is processing...")
                     logger.debug(f"page: {str(index)} --------------------------------------------------------------------------------------")
                     full_text = page_obj.extract_text().strip()
 
                     if len(full_text) < 10:
-                        logger.debug("1) low to 10 char length...")
+                        logger.warning("1) low to 10 char length...")
                         full_text_ocr = self._extract_by_ocr(index, local_path_pdf)
                         if len(full_text_ocr) < 10:
-                            logger.debug("1.1) OCR failed with char length >>>>>>>>>>>>>>>")
+                            logger.warning("1.1) OCR failed with char length >>>>>>>>>>>>>>>")
                             logger.debug(full_text_ocr + "\n<<<<<<<<<<<<<<<<<<<<<<<<<")
                             self.judge_length_wrong += 1
                         else:
-                            logger.debug("1.2) OCR extract success >>>>>>>>>>>>>>>")
+                            logger.warning("1.2) OCR extract success >>>>>>>>>>>>>>>")
                             logger.debug(full_text_ocr + "\n<<<<<<<<<<<<<<<<<<<<<<<<<")
                             # OCR 提取的文本 > 10，不需要判断乱码问题
                             pdf_file_txt.write(json.dumps({"page_no": str(index), "text": full_text_ocr}, ensure_ascii=False))
                             pdf_file_txt.write('\n')
                     else:
-                        logger.debug("2) good larger than 10 char length...")
+                        logger.debug("2) Good, larger than 10 char length...")
                         if is_no_mess_code(full_text):
                             logger.debug("2.1) No mess code >>>>>>>>>>>>>>>>>>>>>>>>>")
                             logger.debug(full_text + "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
@@ -136,7 +137,7 @@ class MixedPdfPdfExtractor(PdfExtractor):
                                 pdf_file_txt.write('\n')
                                 logger.warning(f"{str(index)} -->  {e}")
                         else:
-                            logger.debug("2.2) with mess code so go OCR >>>>>>>>>>>>>>>>")
+                            logger.warning("2.2) with mess code so go OCR >>>>>>>>>>>>>>>>")
                             logger.debug(full_text + "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
                             full_text_ocr = self._extract_by_ocr(index, local_path_pdf)
                             logger.debug(">>>>>>>>>>>>>>>>\n" + full_text_ocr + "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<")

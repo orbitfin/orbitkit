@@ -9,7 +9,7 @@ class ExtractPdfSimpleTxtByCloud:
     def __init__(self, *args, **kwargs):
         self.core_pdf_extract = CorePdfExtract(*args, **kwargs)
         # Add extractor
-        self.core_pdf_extract.add_pdf_extractor(PyPdfPdfExtractor())
+        # self.core_pdf_extract.add_pdf_extractor(PyPdfPdfExtractor())
         self.core_pdf_extract.add_pdf_extractor(MixedPdfPdfExtractor(issue_page_per=95))
 
     def pdf_extract(self,
