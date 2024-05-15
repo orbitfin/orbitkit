@@ -6,11 +6,11 @@ from orbitkit.pdf_extractor_simple.extractors import PyPdfPdfExtractor, MixedPdf
 
 
 class ExtractPdfSimpleTxtByCloud:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, skip_ocr_exceed_page=0, *args, **kwargs):
         self.core_pdf_extract = CorePdfExtract(*args, **kwargs)
         # Add extractor
-        # self.core_pdf_extract.add_pdf_extractor(PyPdfPdfExtractor())
-        self.core_pdf_extract.add_pdf_extractor(MixedPdfPdfExtractor(issue_page_per=95))
+        self.core_pdf_extract.add_pdf_extractor(MixedPdfPdfExtractor(issue_page_per=95,
+                                                                     skip_ocr_exceed_page=skip_ocr_exceed_page))
 
     def pdf_extract(self,
                     cloud_path: str,

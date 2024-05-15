@@ -46,6 +46,7 @@ class CorePdfExtract:
         # Create a tmp folder
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Check if the target .txt file exist in cloud
+            # if False:
             if self.cloud_object_provider.check_file_exist(self.cloud_txt_path):
                 # Exist then download directly: local_path = tmp_dir + '/' + self.cloud_txt_path.split("/")[-1]
                 self.cloud_object_provider.download_file(cloud_path=self.cloud_txt_path,

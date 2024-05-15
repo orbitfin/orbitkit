@@ -84,11 +84,12 @@ class PyPdfPdfExtractor(PdfExtractor):
 
 
 class MixedPdfPdfExtractor(PdfExtractor):
-    def __init__(self, issue_page_per: int = 95):
+    def __init__(self, issue_page_per: int = 95, skip_ocr_exceed_page: int = 0):
         super().__init__()
         self.issue_page_per = issue_page_per
         self.total_page = 0
         self.judge_length_wrong = 0
+        self.skip_ocr_exceed_page = skip_ocr_exceed_page
 
     def _extract_by_ocr(self, index, local_path_pdf):
         images = convert_from_path(local_path_pdf)
@@ -103,19 +104,25 @@ class MixedPdfPdfExtractor(PdfExtractor):
             with open(local_path_pdf, 'rb') as pdf_file, open(self.local_path_pdf_txt, "w+", encoding="utf-8") as pdf_file_txt:
                 pdf_reader = pypdf.PdfReader(pdf_file)
                 for index, page_obj in enumerate(pdf_reader.pages, start=1):
-                    logger.warning(f"page: {str(index)} is processing...")
+                    logger.warning(f">>> page: {str(index)} is processing <<<")
                     logger.debug(f"page: {str(index)} --------------------------------------------------------------------------------------")
                     full_text = page_obj.extract_text().strip()
 
                     if len(full_text) < 10:
-                        logger.warning("1) low to 10 char length...")
+                        # 如果 skip_ocr_excess_page > 0 则超出给定的最大页面，不再继续解析
+                        if self.skip_ocr_exceed_page > 0:
+                            if index > self.skip_ocr_exceed_page:
+                                logger.warning(f"Page {str(index)} is OCR needed, but exceed hard stop condition!")
+                                break
+
+                        logger.warning("1) Low to 10 char length by pypdf extract lib...")
                         full_text_ocr = self._extract_by_ocr(index, local_path_pdf)
                         if len(full_text_ocr) < 10:
-                            logger.warning("1.1) OCR failed with char length >>>>>>>>>>>>>>>")
+                            logger.warning("1.1) Try by OCR extract failed with char length >>>>>>>>>>>>>>>")
                             logger.debug(full_text_ocr + "\n<<<<<<<<<<<<<<<<<<<<<<<<<")
                             self.judge_length_wrong += 1
                         else:
-                            logger.warning("1.2) OCR extract success >>>>>>>>>>>>>>>")
+                            logger.warning("1.2) Try by OCR extract success >>>>>>>>>>>>>>>")
                             logger.debug(full_text_ocr + "\n<<<<<<<<<<<<<<<<<<<<<<<<<")
                             # OCR 提取的文本 > 10，不需要判断乱码问题
                             pdf_file_txt.write(json.dumps({"page_no": str(index), "text": full_text_ocr}, ensure_ascii=False))
