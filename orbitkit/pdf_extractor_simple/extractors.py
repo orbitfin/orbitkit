@@ -144,6 +144,12 @@ class MixedPdfPdfExtractor(PdfExtractor):
                                 pdf_file_txt.write('\n')
                                 logger.warning(f"{str(index)} -->  {e}")
                         else:
+                            # 如果 skip_ocr_excess_page > 0 则超出给定的最大页面，不再继续解析
+                            if self.skip_ocr_exceed_page > 0:
+                                if index > self.skip_ocr_exceed_page:
+                                    logger.warning(f"Page {str(index)} is OCR needed, but exceed hard stop condition!")
+                                    break
+
                             logger.warning("2.2) with mess code so go OCR >>>>>>>>>>>>>>>>")
                             logger.debug(full_text + "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
                             full_text_ocr = self._extract_by_ocr(index, local_path_pdf)
