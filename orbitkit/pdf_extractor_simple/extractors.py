@@ -106,14 +106,21 @@ class MixedPdfPdfExtractor(PdfExtractor):
                 for index, page_obj in enumerate(pdf_reader.pages, start=1):
                     logger.warning(f">>> page: {str(index)} is processing <<<")
                     logger.debug(f"page: {str(index)} --------------------------------------------------------------------------------------")
-                    full_text = page_obj.extract_text().strip()
+
+                    try:
+                        full_text = page_obj.extract_text().strip()
+                    except Exception as e:
+                        if 0 < self.skip_ocr_exceed_page < index:  # skip_ocr_excess_page > 0 超出最大页面，不继续解析
+                            logger.warning(f"Page {str(index)} is OCR needed, but exceed hard stop condition!")
+                            break
+
+                        logger.warning("Normal pypdf can't handle: " + str(e))
+                        full_text = self._extract_by_ocr(index, local_path_pdf)
 
                     if len(full_text) < 10:
-                        # 如果 skip_ocr_excess_page > 0 则超出给定的最大页面，不再继续解析
-                        if self.skip_ocr_exceed_page > 0:
-                            if index > self.skip_ocr_exceed_page:
-                                logger.warning(f"Page {str(index)} is OCR needed, but exceed hard stop condition!")
-                                break
+                        if 0 < self.skip_ocr_exceed_page < index:  # skip_ocr_excess_page > 0 超出最大页面，不继续解析
+                            logger.warning(f"Page {str(index)} is OCR needed, but exceed hard stop condition!")
+                            break
 
                         logger.warning("1) Low to 10 char length by pypdf extract lib...")
                         full_text_ocr = self._extract_by_ocr(index, local_path_pdf)
@@ -144,11 +151,9 @@ class MixedPdfPdfExtractor(PdfExtractor):
                                 pdf_file_txt.write('\n')
                                 logger.warning(f"{str(index)} -->  {e}")
                         else:
-                            # 如果 skip_ocr_excess_page > 0 则超出给定的最大页面，不再继续解析
-                            if self.skip_ocr_exceed_page > 0:
-                                if index > self.skip_ocr_exceed_page:
-                                    logger.warning(f"Page {str(index)} is OCR needed, but exceed hard stop condition!")
-                                    break
+                            if 0 < self.skip_ocr_exceed_page < index:  # skip_ocr_excess_page > 0 超出最大页面，不继续解析
+                                logger.warning(f"Page {str(index)} is OCR needed, but exceed hard stop condition!")
+                                break
 
                             logger.warning("2.2) with mess code so go OCR >>>>>>>>>>>>>>>>")
                             logger.debug(full_text + "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<")

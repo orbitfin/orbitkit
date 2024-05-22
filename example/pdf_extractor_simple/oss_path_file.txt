@@ -1,5 +1,9 @@
+# 正常文件
 oss://edidata/report/china_bond/705007-198991.pdf
 oss://edidata/report/china_money/705007-2489084.pdf
 
 # 第一页是 OCR，后面部分 15 页 OCR
 oss://edidata/report/cninfo/705001-138796.pdf
+
+# 中间有一页，pypdf 解析不了
+oss://edidata/report/cninfo/705001-184400.pdf

@@ -16,8 +16,11 @@ class ExtractPdfSimpleTxtByCloud:
                     cloud_path: str,
                     cloud_txt_path: Optional[str] = None,
                     copy_path: Optional[str] = None,
-                    auto_upload: bool = True):
+                    auto_upload: bool = True,
+                    force_txt_overwrite: bool = False):
         return self.core_pdf_extract.pdf_extract(cloud_path=cloud_path,
                                                  cloud_txt_path=cloud_txt_path,
                                                  copy_path=copy_path,
-                                                 auto_upload=auto_upload, return_txt_list=True)
+                                                 auto_upload=auto_upload,
+                                                 force_txt_overwrite=force_txt_overwrite,
+                                                 return_txt_list=True)

@@ -31,7 +31,8 @@ class CorePdfExtract:
                     cloud_txt_path: Optional[str] = None,
                     copy_path: Optional[str] = None,
                     auto_upload: bool = True,
-                    return_txt_list: bool = False) -> Optional[list]:
+                    return_txt_list: bool = False,
+                    force_txt_overwrite: bool = False) -> Optional[list]:
 
         # Supply cloud_path & cloud_txt_path
         self.cloud_path = cloud_path
@@ -46,8 +47,7 @@ class CorePdfExtract:
         # Create a tmp folder
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Check if the target .txt file exist in cloud
-            # if False:
-            if self.cloud_object_provider.check_file_exist(self.cloud_txt_path):
+            if force_txt_overwrite is False and self.cloud_object_provider.check_file_exist(self.cloud_txt_path):
                 # Exist then download directly: local_path = tmp_dir + '/' + self.cloud_txt_path.split("/")[-1]
                 self.cloud_object_provider.download_file(cloud_path=self.cloud_txt_path,
                                                          local_path=tmp_dir,
