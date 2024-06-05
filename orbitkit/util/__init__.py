@@ -42,11 +42,14 @@ from .util_html import (
     remove_all_tags,
 )
 from .util_aws_s3_wrapper import (
-    AwsS3Wrapper
+    AwsS3Wrapper,
 )
 from .util_aliyun import (
     oss_split_path,
 )
 from .util_selenium import (
-    is_chrome_download_success
+    is_chrome_download_success,
+)
+from .customize_regix_manager import (
+    CustomizeRegixManager,
 )

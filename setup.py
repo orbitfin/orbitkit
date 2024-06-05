@@ -42,5 +42,6 @@ setup(
         "prettytable >= 3.0.0",
         "pytz >= 2022.1",
         "Deprecated",
+        "func_timeout",
     ]
 )

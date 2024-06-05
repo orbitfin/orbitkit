@@ -18,9 +18,10 @@ if __name__ == "__main__":
     # cloud_txt_path：提取完成文件的远程存放地址（可选参数，默认存放地址为cloud_path同级目录）
     # copy_path：提取完成文件本地地址（可选参数）
     # auto_upload：提取完成文件是否上传远程（可选参数，默认为True）
-    txt_content = extract_pdf_simple_txt_by_cloud.pdf_extract(cloud_path="oss://edidata/report/cninfo/705001-184400.pdf",
+    txt_content = extract_pdf_simple_txt_by_cloud.pdf_extract(cloud_path="oss://edidata/report/china_bond/705007-198991.pdf",
                                                               force_txt_overwrite=True,
-                                                              auto_upload=False)
+                                                              auto_upload=False,
+                                                              time_in_sec=3)
 
     # txt_content提取完成数据列表 [{'page_no': '1', 'text': 'zzz'},{'page_no': '2', 'text': 'xxx'}]
     if txt_content:
