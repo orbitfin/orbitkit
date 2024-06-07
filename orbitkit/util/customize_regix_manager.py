@@ -81,3 +81,72 @@ class CustomizeRegixManager:
                 results = self.__regs[key].findall(text)
                 result_dict[key] = results
         return result_dict
+
+
+def customize_regix_match(text: str, regix_pairs: dict) -> dict:
+    reg_dict = {}
+    for key, val in regix_pairs.items():
+        if isinstance(val, list):
+            reg_dict[key] = []
+            for v in val:
+                reg_dict[key].append(re.compile(v, re.DOTALL))
+        elif isinstance(val, str):
+            reg_dict[key] = [re.compile(val, re.DOTALL)]
+    result_dict = {}
+    for pairs in reg_dict:
+        for reg in reg_dict[pairs]:
+            result = reg.findall(text, re.S)
+            flag = True
+            for r in result:
+                if isinstance(r, tuple):
+                    for i in r:
+                        if re.sub(r' ', '', i) != '':
+                            flag = False
+                elif isinstance(r, str):
+                    if re.sub(r' ', '', r) != '':
+                        flag = False
+            if not flag:
+                result_dict[pairs] = result
+            else:
+                pass
+    return result_dict
+
+
+if __name__ == '__main__':
+    #     # test case
+    #     text = """
+    #     公告序號： 1
+    # 公告類型： 非既定之餘額變動
+    # 受影響之債券種類：
+    # 受影響之債券期別： 111-4  期
+    # 受影響之債券代號： F05008
+    # 主旨： 公告第一商業銀行股份有限公司111年度第4期無擔保一般順位5年期美元計價可贖回利率連結區間計息型金融債券已於民國113年01月12日~113年01月12日次級市場買回。
+    # 事實發生日： 113 年 01 月 12 日 ~ 113 年 01 月 12 日
+    # 內容
+    # 　 1.發生緣由： 財團法人中華民國證券櫃檯買賣中心連結衍生性金融商品或為結構型債券之外幣計價國際債券管理辦法
+    # 　 2.因應措施： （一）依財團法人中華民國證券櫃檯買賣中心連結衍生性金融商品或為結構型債券之外幣計價國際債券
+    # 管理辦法，公告第一商業銀行股份有限公司111年度第4期無擔保一般順位5年期美元計價可贖回利率連
+    # 結區間計息型金融債券(代碼1：F05008，簡稱1：S22FCB2)。已於民國113年1月12日~113年1月12日
+    # 次級市場買回金額50,000元。
+    # （二）本次非既定餘額變動前，本期債券現行已流通在外證券餘額19,700,000元
+    # 　 3.對債權人之可能影響： 本次餘額變動後，流通在外證券餘額為19700000元
+    # 　 4.其他應敘明事項： 無。
+    # 申報日期： 113 年 01 月 12 日
+    #     """
+    #     re_list = {"事實發生日": "事實發生日：(.*?)~", "次級市場買回金額": ["Cannot match", "次級市場買回金額(.*?)元。"],
+    #                "流通在外證券餘額": "流通在外證券餘額(.*?)元"}
+    #     print(customize_regix_match(text, re_list))
+
+    text = """
+    标的证券：本期发行的证券为可交换为发行人所持中国长江电力股份
+    有限公司股票（股票代码：600900.SH，股票简称：长江电力）的可交换公司债
+    券。
+    换股期限：本期可交换公司债券换股期限自可交换公司债券发行结束
+    之日满 12 个月后的第一个交易日起至可交换债券到期日止，即 2023 年 6 月 2
+    日至 2027 年 6 月 1 日止。
+    """
+    re_list = {
+        '标的证券': ['.*股票代码：(.*)，股票简称.*', '.*自定义规则2.*'],
+        '换股期限': ['.*自定义规则3.*', '.*换股期限.*到期日止，即(.*)至(.*)止.*']
+    }
+    print(customize_regix_match(text, re_list))

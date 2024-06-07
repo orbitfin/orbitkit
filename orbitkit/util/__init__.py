@@ -52,4 +52,5 @@ from .util_selenium import (
 )
 from .customize_regix_manager import (
     CustomizeRegixManager,
+    customize_regix_match,
 )
