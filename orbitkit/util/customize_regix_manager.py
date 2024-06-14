@@ -107,8 +107,9 @@ def customize_regix_match(text: str, regix_pairs: dict) -> dict:
                         flag = False
             if not flag:
                 result_dict[pairs] = result
+                break
             else:
-                pass
+                ...
     return result_dict
 
 
