@@ -3,7 +3,7 @@ import shutil
 import tempfile
 from typing import List, Optional
 from orbitkit.pdf_extractor_simple.base import CloudObjectProvider, PdfExtractor
-from orbitkit.pdf_extractor_simple.cloud_provider import AwsCloudObjectProvider, OssCloudObjectProvider
+from orbitkit.pdf_extractor_simple.cloud_provider import AwsCloudObjectProvider, OssCloudObjectProvider, HttpCloudObjectProvider
 
 
 class CorePdfExtract:
@@ -21,6 +21,9 @@ class CorePdfExtract:
             return
         if cloud_path.startswith("oss://"):
             self.cloud_object_provider = OssCloudObjectProvider(*self.args, **self.kwargs)
+            return
+        if cloud_path.startswith("http://") or cloud_path.startswith("https://"):
+            self.cloud_object_provider = HttpCloudObjectProvider(*self.args, **self.kwargs)
             return
         raise Exception("No specific CloudObjectProvider err!")
 

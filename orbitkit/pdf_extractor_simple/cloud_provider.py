@@ -10,12 +10,14 @@ try:
     import oss2
     import boto3
     import botocore
+    import requests
     from botocore.exceptions import ClientError
 except ImportError:
     raise ValueError(
         "Please install below packages before using PDF Extractor function.\n"
         "- boto3\n"
         "- oss2\n"
+        "- requests\n"
     )
 
 
@@ -123,3 +125,30 @@ class OssCloudObjectProvider(CloudObjectProvider):
         oss_bucket = oss2.Bucket(self.auth, self.oss_endpoint, oss_path_obj["bucket"])
         content_type = get_content_type_4_filename(cloud_path, text_with_utf8=True)
         oss_bucket.put_object_from_file(oss_path_obj["store_path"], local_path, headers={"Content-Type": content_type})
+
+
+@singleton
+class HttpCloudObjectProvider(CloudObjectProvider):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def check_file_exist(self, cloud_path: str) -> bool:
+        return False
+
+    def download_file(self, cloud_path: str, local_path: str, filename: str):
+        if not os.path.exists(local_path):
+            os.makedirs(local_path)
+
+        file_path = os.path.join(local_path, filename)
+        response = requests.get(cloud_path)
+        if response.status_code == 200:
+            content_type = response.headers.get('Content-Type')
+            if content_type is None or content_type != 'application/pdf':
+                raise Exception(f"File type error! path:{cloud_path} Content-Type:{content_type} ")
+            with open(file_path, 'wb') as file:
+                file.write(response.content)
+        else:
+            raise Exception(f"File Download error! path:{cloud_path} status-code:{response.status_code}")
+
+    def upload_file(self, cloud_path: str, local_path: str):
+        pass
