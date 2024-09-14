@@ -6,3 +6,6 @@ print(extension)
 # date util
 print(outil.get_next_day("2022-02-28"))
 print(outil.get_next_workday_cn("2022-02-28"))
+
+print(outil.get_orbit_std_date_utc())
+print(outil.get_orbit_std_date())

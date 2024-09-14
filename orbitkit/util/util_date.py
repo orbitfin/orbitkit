@@ -2,8 +2,8 @@ import datetime
 import json
 from enum import Enum
 from typing import List, Optional
-
 import pytz
+from deprecated.sphinx import deprecated
 
 
 class DateTimeFormat(Enum):
@@ -24,13 +24,40 @@ class DateEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
 
 
+# -------------------------------------------------------------------------------------------------------------
+# Below 2 methods are for getting Orbit standard datetime.
+# -------------------------------------------------------------------------------------------------------------
+@deprecated(version="v1", reason="Use get_orbit_std_datetime instead.")
 def get_orbit_std_datatime():
     current_timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
     return datetime.datetime.now(tz=current_timezone).strftime(DateTimeFormat.DATETIME_FORMAT.value)
 
 
+@deprecated(version="v1", reason="Use get_orbit_std_datetime_utc instead.")
 def get_orbit_std_datatime_utc():
     return datetime.datetime.now(tz=pytz.timezone('UTC')).strftime(DateTimeFormat.DATETIME_FORMAT.value)
+
+
+def get_orbit_std_datetime():
+    current_timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+    return datetime.datetime.now(tz=current_timezone).strftime(DateTimeFormat.DATETIME_FORMAT.value)
+
+
+def get_orbit_std_datetime_utc():
+    return datetime.datetime.now(tz=pytz.timezone('UTC')).strftime(DateTimeFormat.DATETIME_FORMAT.value)
+
+
+# -------------------------------------------------------------------------------------------------------------
+# Below 2 methods are for getting Orbit standard date.
+# -------------------------------------------------------------------------------------------------------------
+def get_orbit_std_date():
+    return datetime.datetime.now(
+        tz=datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+    ).strftime(DateTimeFormat.DATE_FORMAT.value)
+
+
+def get_orbit_std_date_utc():
+    return datetime.datetime.now(tz=pytz.timezone('UTC')).strftime(DateTimeFormat.DATE_FORMAT.value)
 
 
 def get_date_range_by_base(date_range: int,
